@@ -1,0 +1,40 @@
+{
+  "name": "simple-todos-react",
+  "private": true,
+  "scripts": {
+    "start": "meteor run",
+    "test": "meteor test --once --driver-package meteortesting:mocha",
+    "test-app": "TEST_WATCH=1 meteor test --full-app --driver-package meteortesting:mocha",
+    "visualize": "meteor --production --extra-packages bundle-visualizer"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.6.0",
+    "@fortawesome/fontawesome-svg-core": "^6.2.1",
+    "@fortawesome/free-solid-svg-icons": "^6.2.1",
+    "@fortawesome/react-fontawesome": "^0.2.0",
+    "@types/lodash": "^4.14.191",
+    "@types/meteor": "^2.8.2",
+    "bcrypt": "^3.0.8",
+    "bootstrap": "^5.2.3",
+    "classnames": "^2.2.6",
+    "localforage": "^1.10.0",
+    "lodash": "^4.17.15",
+    "match-sorter": "^6.3.1",
+    "meteor-node-stubs": "^1.0.0",
+    "react": "^16.14.0",
+    "react-bootstrap": "^2.7.0",
+    "react-dom": "^16.13.0",
+    "react-router-dom": "^6.7.0",
+    "sort-by": "^1.2.0"
+  },
+  "meteor": {
+    "mainModule": {
+      "client": "client/main.jsx",
+      "server": "server/main.js"
+    },
+    "testModule": "tests/main.js"
+  },
+  "devDependencies": {
+    "chai": "^4.2.0"
+  }
+}
