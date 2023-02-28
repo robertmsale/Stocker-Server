@@ -25,7 +25,8 @@
     "react-bootstrap": "^2.7.0",
     "react-dom": "^16.13.0",
     "react-router-dom": "^6.7.0",
-    "sort-by": "^1.2.0"
+    "sort-by": "^1.2.0",
+    "type-fest": "^3.6.1"
   },
   "meteor": {
     "mainModule": {
