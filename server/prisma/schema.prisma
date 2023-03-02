@@ -1,0 +1,62 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("API_DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id             Int           @id @default(autoincrement())
+  username       String
+  password       String
+  email          String
+  imageURL       String
+  isAdmin        Boolean
+  userLocation   UserLocation? @relation(fields: [userLocationId], references: [id], onUpdate: Cascade, onDelete: Cascade)
+  userLocationId Int?          @unique
+}
+
+model Task {
+  id    Int     @id @default(autoincrement())
+  label String
+  done  Boolean @default(false)
+}
+
+model InventoryItem {
+  id             Int               @id @default(autoincrement())
+  dataId         Int
+  data           InventoryItemData @relation(fields: [dataId], references: [id])
+  warehouseId    Int?
+  warehouse      Warehouse?        @relation(fields: [warehouseId], references: [id])
+  userLocationId Int?
+  userLocation   UserLocation?     @relation(fields: [userLocationId], references: [id])
+}
+
+model InventoryItemData {
+  id          Int            @id @default(autoincrement())
+  description String
+  imageURL    String
+  cost        Float
+  name        String
+  item        InventoryItem[]
+}
+
+model Warehouse {
+  id            Int             @id @default(autoincrement())
+  name          String
+  address       String
+  latitude      String?
+  longitude     String?
+  items         InventoryItem[]
+  userLocations UserLocation[]
+}
+
+model UserLocation {
+  id          Int             @id @default(autoincrement())
+  warehouse   Warehouse?      @relation(fields: [warehouseId], references: [id])
+  warehouseId Int?
+  user        User?
+  items       InventoryItem[]
+}
