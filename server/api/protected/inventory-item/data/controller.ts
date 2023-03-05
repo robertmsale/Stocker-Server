@@ -15,10 +15,21 @@ export default defineController(() => ({
     },
     post: async ({body}) => {
         const rv = await prisma.inventoryItemData.create({data: body})
+        await prisma.events.create({data: {
+                description: `{username} created a new item data record: ${rv.name}`,
+                time: new Date(),
+                userid: 0
+            }})
         return {status: 200, body: rv}
     },
     patch: async ({body}) => {
+        const before = await prisma.inventoryItemData.findFirst({where: {id: body.id}})
         const rv = await prisma.inventoryItemData.update({data: _.omit(body, 'id'), where: {id: body.id}})
+        await prisma.events.create({data: {
+                description: `{username} updated a new item data record: ${before?.name ?? ""} -> ${rv.name}`,
+                time: new Date(),
+                userid: 0
+            }})
         return {status: 200, body: rv}
     }
 }))

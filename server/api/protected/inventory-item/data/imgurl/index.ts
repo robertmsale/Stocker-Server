@@ -1,6 +1,6 @@
 export type Methods = {
     get: {
-        query?: {fileName: string}
+        query: {fileName?: string}
         resBody: string
     }
 }

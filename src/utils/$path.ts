@@ -8,8 +8,20 @@ export const pagesPath = {
     },
     $url: (url?: { query?: OptionalQuery0, hash?: string }) => ({ pathname: '/article' as const, query: url?.query, hash: url?.hash })
   },
+  "automations": {
+    $url: (url?: { hash?: string }) => ({ pathname: '/automations' as const, hash: url?.hash })
+  },
   "inventory": {
     $url: (url?: { hash?: string }) => ({ pathname: '/inventory' as const, hash: url?.hash })
+  },
+  "reports": {
+    $url: (url?: { hash?: string }) => ({ pathname: '/reports' as const, hash: url?.hash })
+  },
+  "users": {
+    $url: (url?: { hash?: string }) => ({ pathname: '/users' as const, hash: url?.hash })
+  },
+  "warehouses": {
+    $url: (url?: { hash?: string }) => ({ pathname: '/warehouses' as const, hash: url?.hash })
   },
   $url: (url?: { hash?: string }) => ({ pathname: '/' as const, hash: url?.hash })
 }

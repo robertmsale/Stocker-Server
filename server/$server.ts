@@ -11,13 +11,14 @@ import controllerFn0 from './api/controller'
 import controllerFn1 from './api/article/controller'
 import controllerFn2 from './api/article/_articleId@number/controller'
 import controllerFn3 from './api/login/controller'
-import controllerFn4 from './api/protected/inventory-item/controller'
-import controllerFn5 from './api/protected/inventory-item/data/controller'
-import controllerFn6 from './api/protected/inventory-item/data/image/controller'
-import controllerFn7 from './api/protected/inventory-item/data/imgurl/controller'
-import controllerFn8 from './api/tasks/controller'
-import controllerFn9 from './api/tasks/_taskId@number/controller'
-import controllerFn10 from './api/user/controller'
+import controllerFn4 from './api/protected/events/controller'
+import controllerFn5 from './api/protected/inventory-item/controller'
+import controllerFn6 from './api/protected/inventory-item/data/controller'
+import controllerFn7 from './api/protected/inventory-item/data/image/controller'
+import controllerFn8 from './api/protected/inventory-item/data/imgurl/controller'
+import controllerFn9 from './api/tasks/controller'
+import controllerFn10 from './api/tasks/_taskId@number/controller'
+import controllerFn11 from './api/user/controller'
 import type { FastifyInstance, RouteHandlerMethod, preValidationHookHandler, FastifySchema, FastifySchemaCompiler, RouteShorthandOptions, onRequestHookHandler, preParsingHookHandler, preHandlerHookHandler } from 'fastify'
 
 export type FrourioOptions = {
@@ -214,6 +215,7 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
   const controller8 = controllerFn8(fastify)
   const controller9 = controllerFn9(fastify)
   const controller10 = controllerFn10(fastify)
+  const controller11 = controllerFn11(fastify)
 
   fastify.register(multipart, { attachFieldsToBody: true, limits: { fileSize: 1024 ** 3 }, ...options.multipart })
 
@@ -238,33 +240,36 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
   fastify.post(`${basePath}/login`,
     asyncMethodToHandler(controller3.post))
 
-  fastify.get(`${basePath}/protected/inventory-item`,
+  fastify.get(`${basePath}/protected/events`,
     asyncMethodToHandler(controller4.get))
 
-  fastify.post(`${basePath}/protected/inventory-item`,
-    asyncMethodToHandler(controller4.post))
-
-  fastify.patch(`${basePath}/protected/inventory-item`,
-    asyncMethodToHandler(controller4.patch))
-
-  fastify.delete(`${basePath}/protected/inventory-item`,
-    asyncMethodToHandler(controller4.delete))
-
-  fastify.get(`${basePath}/protected/inventory-item/data`,
+  fastify.get(`${basePath}/protected/inventory-item`,
     asyncMethodToHandler(controller5.get))
 
-  fastify.post(`${basePath}/protected/inventory-item/data`,
+  fastify.post(`${basePath}/protected/inventory-item`,
     asyncMethodToHandler(controller5.post))
 
-  fastify.patch(`${basePath}/protected/inventory-item/data`,
+  fastify.patch(`${basePath}/protected/inventory-item`,
     asyncMethodToHandler(controller5.patch))
+
+  fastify.delete(`${basePath}/protected/inventory-item`,
+    asyncMethodToHandler(controller5.delete))
+
+  fastify.get(`${basePath}/protected/inventory-item/data`,
+    asyncMethodToHandler(controller6.get))
+
+  fastify.post(`${basePath}/protected/inventory-item/data`,
+    asyncMethodToHandler(controller6.post))
+
+  fastify.patch(`${basePath}/protected/inventory-item/data`,
+    asyncMethodToHandler(controller6.patch))
 
   fastify.get(
     `${basePath}/protected/inventory-item/data/image`,
     {
       preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['id', false, false]]))
     } as RouteShorthandOptions,
-    asyncMethodToHandler(controller6.get)
+    asyncMethodToHandler(controller7.get)
   )
 
   fastify.post(
@@ -272,22 +277,22 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
     {
       preValidation: formatMultipartData([])
     } as RouteShorthandOptions,
-    asyncMethodToHandler(controller6.post)
+    asyncMethodToHandler(controller7.post)
   )
 
   fastify.get(`${basePath}/protected/inventory-item/data/imgurl`,
-    asyncMethodToHandler(controller7.get))
+    asyncMethodToHandler(controller8.get))
 
   fastify.get(
     `${basePath}/tasks`,
     {
       preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['limit', true, false]]))
     },
-    asyncMethodToHandler(controller8.get)
+    asyncMethodToHandler(controller9.get)
   )
 
   fastify.post(`${basePath}/tasks`,
-    asyncMethodToHandler(controller8.post))
+    asyncMethodToHandler(controller9.post))
 
   fastify.patch(
     `${basePath}/tasks/:taskId`,
@@ -298,7 +303,7 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
       validatorCompiler,
       preValidation: createTypedParamsHandler(['taskId'])
     },
-    asyncMethodToHandler(controller9.patch)
+    asyncMethodToHandler(controller10.patch)
   )
 
   fastify.delete(
@@ -310,7 +315,7 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
       validatorCompiler,
       preValidation: createTypedParamsHandler(['taskId'])
     },
-    asyncMethodToHandler(controller9.delete)
+    asyncMethodToHandler(controller10.delete)
   )
 
   fastify.get(
@@ -318,7 +323,7 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
     {
       onRequest: hooks0.onRequest
     } as RouteShorthandOptions,
-    methodToHandler(controller10.get)
+    methodToHandler(controller11.get)
   )
 
   fastify.post(
@@ -327,7 +332,7 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
       onRequest: hooks0.onRequest,
       preValidation: formatMultipartData([])
     } as RouteShorthandOptions,
-    asyncMethodToHandler(controller10.post)
+    asyncMethodToHandler(controller11.post)
   )
 
   return fastify

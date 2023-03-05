@@ -21,8 +21,16 @@ const MyApp = ({Component, pageProps}: AppProps) => {
             text: 'Inventory'
         },
         {
+            href: '/automations',
+            text: 'Automations'
+        },
+        {
             href: '/users',
             text: 'Users'
+        },
+        {
+            href: '/warehouses',
+            text: 'Warehouses'
         },
         {
             href: '/reports',

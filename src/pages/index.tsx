@@ -1,87 +1,47 @@
 import Head from 'next/head'
-import { useCallback, useState } from 'react'
+import {useCallback, useEffect, useState} from 'react'
 import useAspidaSWR from '@aspida/swr'
 import styles from '~/styles/Home.module.css'
 import { apiClient } from '~/utils/apiClient'
-import type { Task } from '$prisma/client'
+import type {Events, Task} from '$prisma/client'
 import type { FormEvent, ChangeEvent } from 'react'
 import Layout from '~/components/Layout'
 import type { NextPage } from 'next'
+import {Container, Feed, Header, Icon, Segment} from "semantic-ui-react";
 
 const Home: NextPage = () => {
-  const { data: tasks, error, mutate } = useAspidaSWR(apiClient.tasks)
-  const [label, setLabel] = useState('')
-  const inputLabel = useCallback(
-    (e: ChangeEvent<HTMLInputElement>) => setLabel(e.target.value),
-    []
-  )
+    const [events, setEvents] = useState([] as Events[])
 
+    useEffect(() => {
+        apiClient.protected.events.$get().then(res => {
+            setEvents(res)
+        })
+    }, [])
 
-  const createTask = useCallback(
-    async (e: FormEvent) => {
-      e.preventDefault()
-      if (!label) return
+    let eventElements = events.map(v => (
+        <Feed.Event key={v.id}>
+            <Feed.Content>
+                <Feed.Summary>
+                    {v.description}
+                </Feed.Summary>
+                <Feed.Meta>
+                    <Feed.Date>{v.time.toLocaleString()}</Feed.Date>
+                </Feed.Meta>
+            </Feed.Content>
+        </Feed.Event>
+    ))
 
-      await apiClient.tasks.post({ body: { label } })
-      setLabel('')
-      mutate()
-    },
-    [label]
-  )
-
-  const toggleDone = useCallback(async (task: Task) => {
-    await apiClient.tasks._taskId(task.id).patch({ body: { done: !task.done } })
-    mutate()
-  }, [])
-
-  const deleteTask = useCallback(async (task: Task) => {
-    await apiClient.tasks._taskId(task.id).delete()
-    mutate()
-  }, [])
-
-  if (error) return <div>failed to load</div>
-  if (!tasks) return <div>loading...</div>
-
-  return (
-    <>
-      <Head>
-        <title>Stocker: Inventory Management</title>
-      </Head>
-
-      <h1 className={styles.title}>
-        Welcome to <a href="https://nextjs.org">Next.js!</a>
-      </h1>
-
-      <p className={styles.description}>frourio-todo-app</p>
-
-      <div>
-        <form style={{ textAlign: 'center' }} onSubmit={createTask}>
-          <input value={label} type="text" onChange={inputLabel} />
-          <input type="submit" value="ADD" />
-        </form>
-        <ul className={styles.tasks}>
-          {tasks.map((task) => (
-            <li key={task.id}>
-              <label>
-                <input
-                  type="checkbox"
-                  checked={task.done}
-                  onChange={() => toggleDone(task)}
-                />
-                <span>{task.label}</span>
-              </label>
-              <input
-                type="button"
-                value="DELETE ME PLS"
-                style={{ float: 'right' }}
-                onClick={() => deleteTask(task)}
-              />
-            </li>
-          ))}
-        </ul>
-      </div>
-    </>
-  )
+    return (<>
+        <Container text>
+            <Header>Welcome back, {'{username}'}!</Header>
+            <Segment textAlign={"center"}>
+                <Header size={'small'}>Events</Header>
+                <Feed >
+                    {eventElements}
+                </Feed>
+            </Segment>
+        </Container>
+    </>)
 }
 
 export default Home

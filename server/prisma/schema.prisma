@@ -7,6 +7,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
+model Events {
+  id    Int @id @default(autoincrement())
+  userid  Int
+  description String
+  time  DateTime
+}
+
 model User {
   id             Int           @id @default(autoincrement())
   username       String
@@ -36,6 +43,7 @@ model InventoryItem {
 
 model InventoryItemData {
   id          Int            @id @default(autoincrement())
+  active      Boolean @default(true)
   description String
   imageURL    String
   cost        Float

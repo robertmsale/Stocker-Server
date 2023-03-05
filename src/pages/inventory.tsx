@@ -48,7 +48,7 @@ const Inventory: NextPage = () => {
     }, [reloadList])
 
     useEffect(() => {
-        apiClient.protected.inventory_item.data.imgurl.$get({}).then(res => {
+        apiClient.protected.inventory_item.data.imgurl.$get({query: {}}).then(res => {
             setDefaultItemImage(res)
             setNewItemImage(res)
         })
@@ -162,6 +162,7 @@ const Inventory: NextPage = () => {
                                     name: newItemName,
                                     description: newItemDescription,
                                     cost: newItemCost,
+                                    active: true,
                                     imageURL: _.last(newItemImage.split('/')) ?? ""
                                 }
                             })
