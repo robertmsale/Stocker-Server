@@ -1,27 +1,9 @@
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
-import encryption from "$/service/encryption";
+import encryption from "../service/encryption"
 
 async function main() {
-  const task1 = await prisma.task.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      label: 'task1',
-      done: true
-    }
-  })
-
-  const task2 = await prisma.task.upsert({
-    where: { id: 2 },
-    update: {},
-    create: {
-      label: 'task2',
-      done: false
-    }
-  })
-
   const userrole1 = await prisma.userRole.upsert({
     where: { id: 1 },
     update: {},
@@ -52,7 +34,6 @@ async function main() {
     }
   })
   await encryption.hashAndStore(admin.id, "admin");
-  console.log({ task1, task2 })
 }
 
 main()

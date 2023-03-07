@@ -2,9 +2,8 @@ import { defineController } from './$relay'
 import fs, {file} from 'fs-jetpack'
 import {API_ORIGIN, API_UPLOAD_DIR} from "$/service/envValues";
 import _ from 'lodash'
-import {PrismaClient} from "@prisma/client";
+import prisma from '$/service/prisma'
 import path from "path";
-const prisma = new PrismaClient()
 import { v1 as uuid } from 'uuid'
 
 const defaultImagePath = `${API_ORIGIN}/static/icons/dummy.svg`

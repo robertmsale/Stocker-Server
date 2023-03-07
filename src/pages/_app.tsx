@@ -16,7 +16,7 @@ import {
     Sidebar,
     Sticky
 } from 'semantic-ui-react'
-import {useRef, useState, createRef, createContext} from 'react'
+import {useRef, useState, createRef, createContext, useEffect} from 'react'
 import 'semantic-ui-css/semantic.min.css'
 import Link from "next/link";
 import 'chart.js/auto'
@@ -24,15 +24,33 @@ import dynamic from "next/dynamic";
 import {User} from "$prisma/client";
 import _ from "lodash";
 import {apiClient} from "~/utils/apiClient";
+import {Dirs} from "~/utils/types";
 
 export const UserContext = createContext({} as { user: User | undefined, setUser: (user: User | undefined) => void })
-
+export const DirContext = createContext({} as { dirs: Dirs, setDirs: (dir: Dirs) => void })
 const MyApp = ({Component, pageProps}: AppProps) => {
     const [sidebarShown, setSidebarShown] = useState(false)
     const [user, setUser] = useState<User | undefined>(undefined)
+
     const [loginShown, setLoginShown] = useState(false)
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
+    const [dirs, setDirs] = useState<Dirs>({
+        baseURL: "",
+        itemImages: "/uploads/item-images/",
+        profileImages: "/uploads/profile-images/",
+        dummy: "/static/icons/dummy.svg"
+    })
+
+    useEffect(() => {
+        apiClient.dirs.$get().then(res => {
+            setDirs(res)
+        }).catch(e => console.error(e))
+        apiClient.try_login.$get().then(res => {
+            setUser(res)
+        }).catch(e => console.error(e))
+    }, [])
+
     const SidebarButtons = [
         {
             href: '/',
@@ -71,7 +89,7 @@ const MyApp = ({Component, pageProps}: AppProps) => {
 
 
     const MainComponent = () => {
-        if (!_.isUndefined(user) || true) {
+        if (!_.isUndefined(user)) {
             return <Component {...pageProps} />
         } else {
             return (
@@ -127,7 +145,9 @@ const MyApp = ({Component, pageProps}: AppProps) => {
                         </Container>
                     </Segment>
                     <UserContext.Provider value={{user, setUser}}>
-                        <MainComponent/>
+                        <DirContext.Provider value={{dirs, setDirs: (d) => {}}}>
+                            <MainComponent/>
+                        </DirContext.Provider>
                     </UserContext.Provider>
                 </Sidebar.Pusher>
             </Sidebar.Pushable>
@@ -174,10 +194,17 @@ const MyApp = ({Component, pageProps}: AppProps) => {
                         content="Login"
                         labelPosition='right'
                         icon={username.length === 0 || password.length === 0 ? 'x' : 'checkmark'}
-
                         positive={!(username.length === 0 || password.length === 0)}
                         negative={username.length === 0 || password.length === 0}
                         disabled={username.length === 0 || password.length === 0}
+                        onClick={() => {
+                            apiClient.login.$post({ body: { username, password }, config: {withCredentials: true} }).then(res => {
+                                setUser(res)
+                                setLoginShown(false)
+                            }).catch(err => {
+                                alert('Login failed!')
+                            })
+                        }}
                     />
                 </Modal.Actions>
             </Modal>

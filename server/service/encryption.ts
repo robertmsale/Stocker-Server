@@ -6,7 +6,7 @@ const prisma = new PrismaClient()
 
 const saltRounds = 10
 type IsCorrectPassword = boolean
-enum CompareResult {
+export enum CompareResult {
     correct,
     incorrect,
     nouser

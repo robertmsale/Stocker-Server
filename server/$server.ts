@@ -4,21 +4,26 @@ import type { ReadStream } from 'fs'
 import type { HttpStatusOk, AspidaMethodParams } from 'aspida'
 import type { Schema } from 'fast-json-stringify'
 import type { z } from 'zod'
+import hooksFn0 from './api/login/hooks'
+import hooksFn1 from './api/protected/hooks'
+import hooksFn2 from './api/protected/admin/hooks'
+import hooksFn3 from './api/try-login/hooks'
 import validatorsFn0 from './api/article/_articleId@number/validators'
-import validatorsFn1 from './api/tasks/_taskId@number/validators'
 import controllerFn0 from './api/controller'
 import controllerFn1 from './api/article/controller'
 import controllerFn2 from './api/article/_articleId@number/controller'
-import controllerFn3 from './api/login/controller'
-import controllerFn4 from './api/protected/events/controller'
-import controllerFn5 from './api/protected/inventory-item/controller'
-import controllerFn6 from './api/protected/inventory-item/data/controller'
-import controllerFn7 from './api/protected/inventory-item/data/image/controller'
-import controllerFn8 from './api/protected/inventory-item/data/imgurl/controller'
-import controllerFn9 from './api/protected/roles/controller'
-import controllerFn10 from './api/protected/user/controller'
-import controllerFn11 from './api/tasks/controller'
-import controllerFn12 from './api/tasks/_taskId@number/controller'
+import controllerFn3 from './api/dirs/controller'
+import controllerFn4 from './api/login/controller'
+import controllerFn5 from './api/protected/admin/roles/controller'
+import controllerFn6 from './api/protected/admin/user/controller'
+import controllerFn7 from './api/protected/admin/user/img/controller'
+import controllerFn8 from './api/protected/events/controller'
+import controllerFn9 from './api/protected/inventory-item/controller'
+import controllerFn10 from './api/protected/inventory-item/data/controller'
+import controllerFn11 from './api/protected/inventory-item/data/image/controller'
+import controllerFn12 from './api/protected/inventory-item/data/imgurl/controller'
+import controllerFn13 from './api/protected/user/controller'
+import controllerFn14 from './api/try-login/controller'
 import type { FastifyInstance, RouteHandlerMethod, preValidationHookHandler, FastifySchema, FastifySchemaCompiler, RouteShorthandOptions, onRequestHookHandler, preParsingHookHandler, preHandlerHookHandler } from 'fastify'
 
 export type FrourioOptions = {
@@ -201,8 +206,11 @@ const asyncMethodToHandler = (
 
 export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
   const basePath = options.basePath ?? ''
+  const hooks0 = hooksFn0(fastify)
+  const hooks1 = hooksFn1(fastify)
+  const hooks2 = hooksFn2(fastify)
+  const hooks3 = hooksFn3(fastify)
   const validators0 = validatorsFn0(fastify)
-  const validators1 = validatorsFn1(fastify)
   const controller0 = controllerFn0(fastify)
   const controller1 = controllerFn1(fastify)
   const controller2 = controllerFn2(fastify)
@@ -216,6 +224,8 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
   const controller10 = controllerFn10(fastify)
   const controller11 = controllerFn11(fastify)
   const controller12 = controllerFn12(fastify)
+  const controller13 = controllerFn13(fastify)
+  const controller14 = controllerFn14(fastify)
 
   fastify.register(multipart, { attachFieldsToBody: true, limits: { fileSize: 1024 ** 3 }, ...options.multipart })
 
@@ -233,108 +243,187 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
       },
       validatorCompiler,
       preValidation: createTypedParamsHandler(['articleId'])
-    },
+    } as RouteShorthandOptions,
     methodToHandler(controller2.get)
   )
 
-  fastify.post(`${basePath}/login`,
-    asyncMethodToHandler(controller3.post))
+  fastify.get(`${basePath}/dirs`,
+    asyncMethodToHandler(controller3.get))
 
-  fastify.get(`${basePath}/protected/events`,
-    asyncMethodToHandler(controller4.get))
-
-  fastify.get(`${basePath}/protected/inventory-item`,
-    asyncMethodToHandler(controller5.get))
-
-  fastify.post(`${basePath}/protected/inventory-item`,
-    asyncMethodToHandler(controller5.post))
-
-  fastify.patch(`${basePath}/protected/inventory-item`,
-    asyncMethodToHandler(controller5.patch))
-
-  fastify.delete(`${basePath}/protected/inventory-item`,
-    asyncMethodToHandler(controller5.delete))
-
-  fastify.get(`${basePath}/protected/inventory-item/data`,
-    asyncMethodToHandler(controller6.get))
-
-  fastify.post(`${basePath}/protected/inventory-item/data`,
-    asyncMethodToHandler(controller6.post))
-
-  fastify.patch(`${basePath}/protected/inventory-item/data`,
-    asyncMethodToHandler(controller6.patch))
+  fastify.post(
+    `${basePath}/login`,
+    {
+      onRequest: hooks0.onRequest,
+      preHandler: hooks0.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller4.post)
+  )
 
   fastify.get(
-    `${basePath}/protected/inventory-item/data/image`,
+    `${basePath}/protected/admin/roles`,
     {
-      preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['id', false, false]]))
+      onRequest: hooks2.onRequest,
+      preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['id', false, false]])),
+      preHandler: hooks1.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller5.get)
+  )
+
+  fastify.post(
+    `${basePath}/protected/admin/roles`,
+    {
+      onRequest: hooks2.onRequest,
+      preHandler: hooks1.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller5.post)
+  )
+
+  fastify.post(
+    `${basePath}/protected/admin/user`,
+    {
+      onRequest: hooks2.onRequest,
+      preHandler: hooks1.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller6.post)
+  )
+
+  fastify.patch(
+    `${basePath}/protected/admin/user`,
+    {
+      onRequest: hooks2.onRequest,
+      preHandler: hooks1.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller6.patch)
+  )
+
+  fastify.get(
+    `${basePath}/protected/admin/user/img`,
+    {
+      onRequest: hooks2.onRequest,
+      preValidation: parseNumberTypeQueryParams([['id', false, false]]),
+      preHandler: hooks1.preHandler
     } as RouteShorthandOptions,
     asyncMethodToHandler(controller7.get)
   )
 
   fastify.post(
-    `${basePath}/protected/inventory-item/data/image`,
+    `${basePath}/protected/admin/user/img`,
     {
-      preValidation: formatMultipartData([])
+      onRequest: hooks2.onRequest,
+      preValidation: [
+        parseNumberTypeQueryParams([['id', false, false]]),
+        formatMultipartData([])
+      ],
+      preHandler: hooks1.preHandler
     } as RouteShorthandOptions,
     asyncMethodToHandler(controller7.post)
   )
 
-  fastify.get(`${basePath}/protected/inventory-item/data/imgurl`,
-    asyncMethodToHandler(controller8.get))
+  fastify.get(
+    `${basePath}/protected/events`,
+    {
+      preHandler: hooks1.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller8.get)
+  )
 
   fastify.get(
-    `${basePath}/protected/roles`,
+    `${basePath}/protected/inventory-item`,
     {
-      preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['id', false, false]]))
+      preHandler: hooks1.preHandler
     } as RouteShorthandOptions,
     asyncMethodToHandler(controller9.get)
   )
 
-  fastify.post(`${basePath}/protected/roles`,
-    asyncMethodToHandler(controller9.post))
+  fastify.post(
+    `${basePath}/protected/inventory-item`,
+    {
+      preHandler: hooks1.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller9.post)
+  )
+
+  fastify.patch(
+    `${basePath}/protected/inventory-item`,
+    {
+      preHandler: hooks1.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller9.patch)
+  )
+
+  fastify.delete(
+    `${basePath}/protected/inventory-item`,
+    {
+      preHandler: hooks1.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller9.delete)
+  )
 
   fastify.get(
-    `${basePath}/protected/user`,
+    `${basePath}/protected/inventory-item/data`,
     {
-      preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['id', false, false]]))
+      preHandler: hooks1.preHandler
     } as RouteShorthandOptions,
     asyncMethodToHandler(controller10.get)
   )
 
-  fastify.get(
-    `${basePath}/tasks`,
+  fastify.post(
+    `${basePath}/protected/inventory-item/data`,
     {
-      preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['limit', true, false]]))
-    },
+      preHandler: hooks1.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller10.post)
+  )
+
+  fastify.patch(
+    `${basePath}/protected/inventory-item/data`,
+    {
+      preHandler: hooks1.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller10.patch)
+  )
+
+  fastify.get(
+    `${basePath}/protected/inventory-item/data/image`,
+    {
+      preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['id', false, false]])),
+      preHandler: hooks1.preHandler
+    } as RouteShorthandOptions,
     asyncMethodToHandler(controller11.get)
   )
 
-  fastify.post(`${basePath}/tasks`,
-    asyncMethodToHandler(controller11.post))
-
-  fastify.patch(
-    `${basePath}/tasks/:taskId`,
+  fastify.post(
+    `${basePath}/protected/inventory-item/data/image`,
     {
-      schema: {
-        params: validators1.params
-      },
-      validatorCompiler,
-      preValidation: createTypedParamsHandler(['taskId'])
-    },
-    asyncMethodToHandler(controller12.patch)
+      preValidation: formatMultipartData([]),
+      preHandler: hooks1.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller11.post)
   )
 
-  fastify.delete(
-    `${basePath}/tasks/:taskId`,
+  fastify.get(
+    `${basePath}/protected/inventory-item/data/imgurl`,
     {
-      schema: {
-        params: validators1.params
-      },
-      validatorCompiler,
-      preValidation: createTypedParamsHandler(['taskId'])
-    },
-    asyncMethodToHandler(controller12.delete)
+      preHandler: hooks1.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller12.get)
+  )
+
+  fastify.get(
+    `${basePath}/protected/user`,
+    {
+      preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['id', false, false]])),
+      preHandler: hooks1.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller13.get)
+  )
+
+  fastify.get(
+    `${basePath}/try-login`,
+    {
+      preHandler: hooks3.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller14.get)
   )
 
   return fastify

@@ -1,5 +1,5 @@
 datasource db {
-  provider = "sqlite"
+  provider = "mysql"
   url      = env("API_DATABASE_URL")
 }
 
@@ -21,8 +21,16 @@ model User {
   email          String
   imageURL       String
   roles          UserRole[]
+  active         Boolean
   userLocation   UserLocation? @relation(fields: [userLocationId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userLocationId Int?          @unique
+}
+
+model UserToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  expires DateTime @default(now())
 }
 
 model UserRole {

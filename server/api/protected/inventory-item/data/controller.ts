@@ -1,9 +1,8 @@
 import { defineController } from './$relay'
 import {InventoryItem, InventoryItemData} from "$prisma/client";
-import {PrismaClient} from '@prisma/client'
+import prisma from '$/service/prisma'
 import _ from 'lodash'
 
-const prisma = new PrismaClient()
 
 export default defineController(() => ({
     get: async ({query}) => {
