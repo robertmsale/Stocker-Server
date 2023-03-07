@@ -8,10 +8,10 @@ generator client {
 }
 
 model Events {
-  id    Int @id @default(autoincrement())
-  userid  Int
+  id          Int      @id @default(autoincrement())
+  userid      Int
   description String
-  time  DateTime
+  time        DateTime
 }
 
 model User {
@@ -20,9 +20,15 @@ model User {
   password       String
   email          String
   imageURL       String
-  isAdmin        Boolean
+  roles          UserRole[]
   userLocation   UserLocation? @relation(fields: [userLocationId], references: [id], onUpdate: Cascade, onDelete: Cascade)
   userLocationId Int?          @unique
+}
+
+model UserRole {
+  id    Int    @id @default(autoincrement())
+  value String
+  users User[]
 }
 
 model Task {
@@ -42,8 +48,8 @@ model InventoryItem {
 }
 
 model InventoryItemData {
-  id          Int            @id @default(autoincrement())
-  active      Boolean @default(true)
+  id          Int             @id @default(autoincrement())
+  active      Boolean         @default(true)
   description String
   imageURL    String
   cost        Float

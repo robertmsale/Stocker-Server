@@ -4,7 +4,6 @@ import type { ReadStream } from 'fs'
 import type { HttpStatusOk, AspidaMethodParams } from 'aspida'
 import type { Schema } from 'fast-json-stringify'
 import type { z } from 'zod'
-import hooksFn0 from './api/user/hooks'
 import validatorsFn0 from './api/article/_articleId@number/validators'
 import validatorsFn1 from './api/tasks/_taskId@number/validators'
 import controllerFn0 from './api/controller'
@@ -16,9 +15,10 @@ import controllerFn5 from './api/protected/inventory-item/controller'
 import controllerFn6 from './api/protected/inventory-item/data/controller'
 import controllerFn7 from './api/protected/inventory-item/data/image/controller'
 import controllerFn8 from './api/protected/inventory-item/data/imgurl/controller'
-import controllerFn9 from './api/tasks/controller'
-import controllerFn10 from './api/tasks/_taskId@number/controller'
-import controllerFn11 from './api/user/controller'
+import controllerFn9 from './api/protected/roles/controller'
+import controllerFn10 from './api/protected/user/controller'
+import controllerFn11 from './api/tasks/controller'
+import controllerFn12 from './api/tasks/_taskId@number/controller'
 import type { FastifyInstance, RouteHandlerMethod, preValidationHookHandler, FastifySchema, FastifySchemaCompiler, RouteShorthandOptions, onRequestHookHandler, preParsingHookHandler, preHandlerHookHandler } from 'fastify'
 
 export type FrourioOptions = {
@@ -201,7 +201,6 @@ const asyncMethodToHandler = (
 
 export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
   const basePath = options.basePath ?? ''
-  const hooks0 = hooksFn0(fastify)
   const validators0 = validatorsFn0(fastify)
   const validators1 = validatorsFn1(fastify)
   const controller0 = controllerFn0(fastify)
@@ -216,6 +215,7 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
   const controller9 = controllerFn9(fastify)
   const controller10 = controllerFn10(fastify)
   const controller11 = controllerFn11(fastify)
+  const controller12 = controllerFn12(fastify)
 
   fastify.register(multipart, { attachFieldsToBody: true, limits: { fileSize: 1024 ** 3 }, ...options.multipart })
 
@@ -284,15 +284,34 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
     asyncMethodToHandler(controller8.get))
 
   fastify.get(
+    `${basePath}/protected/roles`,
+    {
+      preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['id', false, false]]))
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller9.get)
+  )
+
+  fastify.post(`${basePath}/protected/roles`,
+    asyncMethodToHandler(controller9.post))
+
+  fastify.get(
+    `${basePath}/protected/user`,
+    {
+      preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['id', false, false]]))
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller10.get)
+  )
+
+  fastify.get(
     `${basePath}/tasks`,
     {
       preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['limit', true, false]]))
     },
-    asyncMethodToHandler(controller9.get)
+    asyncMethodToHandler(controller11.get)
   )
 
   fastify.post(`${basePath}/tasks`,
-    asyncMethodToHandler(controller9.post))
+    asyncMethodToHandler(controller11.post))
 
   fastify.patch(
     `${basePath}/tasks/:taskId`,
@@ -303,7 +322,7 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
       validatorCompiler,
       preValidation: createTypedParamsHandler(['taskId'])
     },
-    asyncMethodToHandler(controller10.patch)
+    asyncMethodToHandler(controller12.patch)
   )
 
   fastify.delete(
@@ -315,24 +334,7 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
       validatorCompiler,
       preValidation: createTypedParamsHandler(['taskId'])
     },
-    asyncMethodToHandler(controller10.delete)
-  )
-
-  fastify.get(
-    `${basePath}/user`,
-    {
-      onRequest: hooks0.onRequest
-    } as RouteShorthandOptions,
-    methodToHandler(controller11.get)
-  )
-
-  fastify.post(
-    `${basePath}/user`,
-    {
-      onRequest: hooks0.onRequest,
-      preValidation: formatMultipartData([])
-    } as RouteShorthandOptions,
-    asyncMethodToHandler(controller11.post)
+    asyncMethodToHandler(controller12.delete)
   )
 
   return fastify

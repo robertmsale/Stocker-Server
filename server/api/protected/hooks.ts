@@ -5,6 +5,6 @@ export type AdditionalRequest = {
     }
 }
 
-// export default defineHooks(() => ({
-//     onRequest: (req, res) => req.jwtVerify().catch(err => res.send(err))
-// }))
+export default defineHooks(() => ({
+    onRequest: (req, res) => req.jwtVerify().catch(err => res.send(err))
+}))

@@ -9,6 +9,8 @@ import Layout from '~/components/Layout'
 import type { NextPage } from 'next'
 import {Container, Feed, Header, Icon, Segment} from "semantic-ui-react";
 
+
+
 const Home: NextPage = () => {
     const [events, setEvents] = useState([] as Events[])
 

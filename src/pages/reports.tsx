@@ -24,7 +24,9 @@ import _ from 'lodash'
 const ReportsPage: NextPage = () => {
 
     return (<>
-
+        <Header>
+            Reports Page
+        </Header>
     </>)
 }
 

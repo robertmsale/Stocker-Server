@@ -11,6 +11,6 @@ export default defineController((fastify) => ({
         const user = await prisma.user.findFirst({where: {username: body.username}})
         if (_.isNull(user)) return {status: 404}
         if (body.password != user.password) return {status: 401}
-        return {status: 201, body: { token: fastify.jwt.sign({id: user.id})}}
+        return {status: 201, body: { token: fastify.jwt.sign({id: user.id}), id: user.id}}
     }
 }))

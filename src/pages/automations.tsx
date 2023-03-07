@@ -24,7 +24,9 @@ import _ from 'lodash'
 const AutomationsPage: NextPage = () => {
 
     return (<>
-
+        <Header>
+            Automations Page
+        </Header>
     </>)
 }
 
