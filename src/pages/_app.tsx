@@ -87,7 +87,8 @@ const MyApp = ({Component, pageProps}: AppProps) => {
         </Menu.Item>
     ))
 
-
+    const test = user
+    test.
     const MainComponent = () => {
         if (!_.isUndefined(user)) {
             return <Component {...pageProps} />

@@ -5,6 +5,9 @@ import {Except, SetOptional} from "type-fest";
 
 export type Methods = {
   get: {
+    reqHeader: {
+      authorization: string
+    }
     query?: {
         id: number
     }

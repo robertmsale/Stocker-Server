@@ -3,6 +3,9 @@ import {InventoryItem, InventoryItemData} from '$prisma/client'
 
 export type Methods = {
     get: {
+        reqHeader: {
+          authorization: string
+        }
         query?: Merge<Partial<InventoryItem>, {
             limit?: number,
             select?: [keyof InventoryItem]
@@ -11,16 +14,25 @@ export type Methods = {
     }
 
     post: {
+        reqHeader: {
+          authorization: string
+        }
         reqBody: Except<InventoryItem, 'id'>
         resBody: InventoryItem
     }
 
     patch: {
+        reqHeader: {
+          authorization: string
+        }
         reqBody: SetRequired<Partial<InventoryItem>, 'id'>,
         resBody: InventoryItem
     }
 
     delete: {
+        reqHeader: {
+          authorization: string
+        }
         reqBody: [number]
         resBody: {status: 'ok' | 'failed'}
     }

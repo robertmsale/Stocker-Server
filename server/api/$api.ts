@@ -124,11 +124,11 @@ const api = <T>({ baseURL, fetch }: AspidaClient<T>) => {
               fetch<Methods11['get']['resBody']>(prefix, PATH9, GET, option).text(),
             $get: (option?: { query?: Methods11['get']['query'] | undefined, config?: T | undefined } | undefined) =>
               fetch<Methods11['get']['resBody']>(prefix, PATH9, GET, option).text().then(r => r.body),
-            post: (option: { body: Methods11['post']['reqBody'], config?: T | undefined }) =>
+            post: (option: { body: Methods11['post']['reqBody'], query: Methods11['post']['query'], config?: T | undefined }) =>
               fetch<Methods11['post']['resBody']>(prefix, PATH9, POST, option, 'FormData').text(),
-            $post: (option: { body: Methods11['post']['reqBody'], config?: T | undefined }) =>
+            $post: (option: { body: Methods11['post']['reqBody'], query: Methods11['post']['query'], config?: T | undefined }) =>
               fetch<Methods11['post']['resBody']>(prefix, PATH9, POST, option, 'FormData').text().then(r => r.body),
-            $path: (option?: { method?: 'get' | undefined; query: Methods11['get']['query'] } | undefined) =>
+            $path: (option?: { method?: 'get' | undefined; query: Methods11['get']['query'] } | { method: 'post'; query: Methods11['post']['query'] } | undefined) =>
               `${prefix}${PATH9}${option && option.query ? `?${dataToURLString(option.query)}` : ''}`
           },
           imgurl: {
@@ -175,15 +175,16 @@ const api = <T>({ baseURL, fetch }: AspidaClient<T>) => {
       },
       user: {
         img: {
-          get: (option?: { config?: T | undefined } | undefined) =>
+          get: (option?: { query?: Methods14['get']['query'] | undefined, config?: T | undefined } | undefined) =>
             fetch<Methods14['get']['resBody']>(prefix, PATH12, GET, option).text(),
-          $get: (option?: { config?: T | undefined } | undefined) =>
+          $get: (option?: { query?: Methods14['get']['query'] | undefined, config?: T | undefined } | undefined) =>
             fetch<Methods14['get']['resBody']>(prefix, PATH12, GET, option).text().then(r => r.body),
           post: (option: { body: Methods14['post']['reqBody'], config?: T | undefined }) =>
             fetch<Methods14['post']['resBody']>(prefix, PATH12, POST, option, 'FormData').text(),
           $post: (option: { body: Methods14['post']['reqBody'], config?: T | undefined }) =>
             fetch<Methods14['post']['resBody']>(prefix, PATH12, POST, option, 'FormData').text().then(r => r.body),
-          $path: () => `${prefix}${PATH12}`
+          $path: (option?: { method?: 'get' | undefined; query: Methods14['get']['query'] } | undefined) =>
+            `${prefix}${PATH12}${option && option.query ? `?${dataToURLString(option.query)}` : ''}`
         },
         get: (option?: { query?: Methods13['get']['query'] | undefined, config?: T | undefined } | undefined) =>
           fetch<Methods13['get']['resBody']>(prefix, PATH11, GET, option).json(),

@@ -4,7 +4,7 @@ import type { FastifyInstance } from 'fastify'
 import type { Schema } from 'fast-json-stringify'
 import type { HttpStatusOk } from 'aspida'
 import type { ServerHooks, ServerMethodHandler } from '../../$server'
-import type { AdditionalRequest } from './../hooks'
+import type { AdditionalRequest } from './hooks'
 import type { Methods } from './'
 
 export function defineResponseSchema<T extends { [U in keyof Methods]?: { [V in HttpStatusOk]?: Schema }}>(methods: () => T) {
