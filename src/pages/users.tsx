@@ -13,16 +13,18 @@ import {
     Segment,
     Table
 } from "semantic-ui-react";
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import {InventoryItem, InventoryItemData, User} from "$prisma/client";
 import useAspidaSWR from "@aspida/swr";
 import {apiClient} from "~/utils/apiClient";
-import {Merge} from "type-fest";
+import {Except, Merge} from "type-fest";
 import dynamic from "next/dynamic";
 import _ from 'lodash'
+import {apiWithHeaders} from "~/utils/apiConfig";
+import {DirContext} from "~/pages/_app";
 
 const UserPage: NextPage = () => {
-    const [users, setUsers] = useState([] as User[])
+    const [users, setUsers] = useState([] as Except<User, 'password'>[])
     const [addUserShown, setAddUserShown] = useState(false)
     const [username, setUsername] = useState('')
     const [password, setPassword] = useState('')
@@ -31,11 +33,14 @@ const UserPage: NextPage = () => {
     const [role, setRole] = useState([] as string[])
     const [roles, setRoles] = useState([] as string[])
 
+    const {dirs} = useContext(DirContext)
+
     useEffect(() => {
-        apiClient.protected.user.$get().then(res => {
+        apiClient.protected.user.$get(apiWithHeaders({query: {}})).then(res => {
             setUsers(res)
+            console.log(res)
         })
-        apiClient.protected.roles.$get().then(res => {
+        apiClient.protected.admin.roles.$get(apiWithHeaders({})).then(res => {
             setRoles(res.map(v => v.value))
         })
     }, [])
@@ -104,7 +109,7 @@ const UserPage: NextPage = () => {
                 <Header>
                     Users Page
                 </Header>
-                <Button icon={'plus'} onClick={(e)=> {
+                <Button primary icon={'plus'} onClick={(e)=> {
                     e.preventDefault()
                     setAddUserShown(true)
                 }}/>
@@ -112,56 +117,34 @@ const UserPage: NextPage = () => {
             <Table celled>
                 <Table.Header>
                     <Table.Row>
+                        <Table.HeaderCell collapsing>📸</Table.HeaderCell>
+                        <Table.HeaderCell collapsing>🪪</Table.HeaderCell>
                         <Table.HeaderCell>Username</Table.HeaderCell>
-                        <Table.HeaderCell>First Name</Table.HeaderCell>
-                        <Table.HeaderCell>Last Name</Table.HeaderCell>
-                        <Table.HeaderCell>Role</Table.HeaderCell>
-                        <Table.HeaderCell>Actions</Table.HeaderCell>
+                        <Table.HeaderCell>Email</Table.HeaderCell>
+                        <Table.HeaderCell>Active</Table.HeaderCell>
+                        <Table.HeaderCell collapsing>Actions</Table.HeaderCell>
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                    <Table.Row>
-                        <Table.Cell>John</Table.Cell>
-                        <Table.Cell>Approved</Table.Cell>
-                        <Table.Cell>None</Table.Cell>
-                        <Table.Cell>None</Table.Cell>
-                        <Table.Cell>
-                            <Button icon>
-                                <Icon name='edit'/>
-                            </Button>
-                            <Button icon>
-                                <Icon name='trash'/>
-                            </Button>
-                        </Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                        <Table.Cell>Jamie</Table.Cell>
-                        <Table.Cell>Approved</Table.Cell>
-                        <Table.Cell>Requires call</Table.Cell>
-                        <Table.Cell>None</Table.Cell>
-                        <Table.Cell>
-                            <Button icon>
-                                <Icon name='edit'/>
-                            </Button>
-                            <Button icon>
-                                <Icon name='trash'/>
-                            </Button>
-                        </Table.Cell>
-                    </Table.Row>
-                    <Table.Row>
-                        <Table.Cell>Jill</Table.Cell>
-                        <Table.Cell>Denied</Table.Cell>
-                        <Table.Cell>None</Table.Cell>
-                        <Table.Cell>None</Table.Cell>
-                        <Table.Cell>
-                            <Button icon>
-                                <Icon name='edit'/>
-                            </Button>
-                            <Button icon>
-                                <Icon name='trash'/>
-                            </Button>
-                        </Table.Cell>
-                    </Table.Row>
+                    {users.map(u => (
+                        <Table.Row key={u.id}>
+                            <Table.Cell><img width={'32'} height={'32'} src={u.imageURL !== '' ? `${dirs.baseURL}${dirs.profileImages}${u.imageURL}` : `${dirs.baseURL}${dirs.dummy}`} /></Table.Cell>
+                            <Table.Cell>{u.id}</Table.Cell>
+                            <Table.Cell>{u.username}</Table.Cell>
+                            <Table.Cell>{u.email}</Table.Cell>
+                            <Table.Cell>{u.active ? 'Yes' : 'No'}</Table.Cell>
+                            <Table.Cell>
+                                <div style={{display: "flex", flexDirection: 'row'}}>
+                                    <Button icon primary>
+                                        <Icon name='edit'/>
+                                    </Button>
+                                    <Button icon negative>
+                                        <Icon name='trash'/>
+                                    </Button>
+                                </div>
+                            </Table.Cell>
+                        </Table.Row>
+                    ))}
                 </Table.Body>
             </Table>
         </Container>

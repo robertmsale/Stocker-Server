@@ -6,6 +6,8 @@ import prisma from '$/service/prisma'
 import path from "path";
 import { v1 as uuid } from 'uuid'
 import dirs from '$/service/dirs'
+import jimp from 'jimp'
+
 
 const defaultImagePath = `${API_ORIGIN}/static/icons/dummy.svg`
 const genImagePath = (img: string) => `${API_ORIGIN}/upload/item-images/${img}`
@@ -21,10 +23,15 @@ export default defineController(() => ({
     },
     post: async ({body, query}) => {
         const filename = `${uuid()}${path.extname(body.icon.filename)}`
+        const filepath = `${API_UPLOAD_DIR}/item-images/${filename}`
+        jimp.read(await body.icon.toBuffer()).then(img => {
+            img.scaleToFit(128, 128)
+            img.writeAsync(filepath)
+        })
 
-        const filepath = ``
-        await fs.writeAsync(filename, await body.icon.toBuffer())
-        await prisma.inventoryItemData.update({where: {id: query.id}, data: {imageURL: ``}})
+        if (!_.isUndefined(query) && !_.isUndefined(query.id)) {
+            await prisma.inventoryItemData.update({where: {id: query.id}, data: {imageURL: filename}})
+        }
         return {status: 200, body: genImagePath(path.basename(filename))}
     }
 }))

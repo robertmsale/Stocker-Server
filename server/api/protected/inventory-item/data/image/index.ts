@@ -12,7 +12,7 @@ export type Methods = {
         reqHeader: {
           authorization: string
         }
-        query: {id: number}
+        query?: {id: number}
         reqFormat: FormData,
         reqBody: { icon: File | ReadStream }
         resBody: string

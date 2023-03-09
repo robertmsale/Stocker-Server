@@ -1,6 +1,6 @@
 import path from 'path'
 import Fastify, { FastifyServerFactory } from 'fastify'
-import helmet from '@fastify/helmet'
+import helmet, {FastifyHelmetOptions} from '@fastify/helmet'
 import cors, {FastifyCorsOptions} from '@fastify/cors'
 import fastifyStatic from '@fastify/static'
 import fastifyJwt from '@fastify/jwt'
@@ -51,22 +51,43 @@ const seed = async () => {
     }
 
     await encryption.hashAndStore(admin.id, "admin");
+
+    const warehouseSearch = await prisma.warehouse.findFirst({where: {id: 1}})
+    if(_.isNull(warehouseSearch)) {
+        await prisma.warehouse.create({data: {
+            address: "1 Apple Park Way, Cupertino, CA 95014",
+            name: "Default Warehouse"
+            }})
+    }
 }
 
 export const init = (serverFactory?: FastifyServerFactory) => {
     seed()
     const app = Fastify({ serverFactory })
-    app.register(helmet, { crossOriginResourcePolicy: false })
-    app.register(cors,
-        // {
-        //   origin: true,
-        //   credentials: true,
-        // }as FastifyCorsOptions
-    )
+    app.register(helmet, {
+        crossOriginResourcePolicy: {
+            policy: 'cross-origin'
+        },
+        permittedCrossDomainPolicies: {permittedPolicies: 'all'},
+        contentSecurityPolicy: true,
+        referrerPolicy: true,
+        crossOriginEmbedderPolicy: true,
+        crossOriginOpenerPolicy: true,
+        global: true
+    } as FastifyHelmetOptions)
+    app.register(cors, {
+        origin: true,
+        allowedHeaders: '*',
+        strictPreflight: false,
+        preflightContinue: true,
+        credentials: true,
+
+    } as FastifyCorsOptions)
     app.register(ws)
     app.register(fastifyStatic, {
         root: path.join(__dirname, 'static'),
-        prefix: '/static/'
+        prefix: '/static/',
+
     })
     if (API_UPLOAD_DIR) {
         try {
@@ -80,7 +101,7 @@ export const init = (serverFactory?: FastifyServerFactory) => {
         app.after(() => {
             app.register(fastifyStatic, {
                 root: API_UPLOAD_DIR,
-                prefix: '/upload/',
+                prefix: '/uploads/',
                 decorateReply: false
             })
         })

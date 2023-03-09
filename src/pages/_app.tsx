@@ -87,8 +87,6 @@ const MyApp = ({Component, pageProps}: AppProps) => {
         </Menu.Item>
     ))
 
-    const test = user
-    test.
     const MainComponent = () => {
         if (!_.isUndefined(user)) {
             return <Component {...pageProps} />
@@ -140,7 +138,17 @@ const MyApp = ({Component, pageProps}: AppProps) => {
                                     Stocker
                                 </Menu.Item>
                                 <Menu.Item position={'right'}>
-                                    <Button as={'a'} inverted>Log In</Button>
+                                    <Button as={'a'} inverted onClick={() => {
+                                        if (_.isUndefined(user)) {
+                                            setLoginShown(true)
+                                        } else {
+                                            const answer = window.confirm("Are you sure you want to log out?")
+                                            if (answer) {
+                                                setUser(undefined)
+                                                localStorage.setItem('token', '')
+                                            }
+                                        }
+                                    }}>Log {_.isUndefined(user) ? 'In' : 'Out'}</Button>
                                 </Menu.Item>
                             </Menu>
                         </Container>
@@ -200,7 +208,8 @@ const MyApp = ({Component, pageProps}: AppProps) => {
                         disabled={username.length === 0 || password.length === 0}
                         onClick={() => {
                             apiClient.login.$post({ body: { username, password }, config: {withCredentials: true} }).then(res => {
-                                setUser(res)
+                                setUser(res.user)
+                                localStorage.setItem('token', res.token)
                                 setLoginShown(false)
                             }).catch(err => {
                                 alert('Login failed!')

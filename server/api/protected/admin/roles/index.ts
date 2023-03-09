@@ -7,7 +7,7 @@ export type Methods = {
         reqHeader: {
           authorization: string
         }
-        query?: {id: number},
+        query: {id?: number},
         resBody: UserRole[]
     }
     post: {

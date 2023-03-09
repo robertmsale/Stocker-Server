@@ -1,7 +1,8 @@
 import {User} from "$prisma/client";
+import {Except} from "type-fest";
 
 export type Methods = {
     get: {
-        resBody: User
+        resBody: Except<User, 'password'>
     }
 }

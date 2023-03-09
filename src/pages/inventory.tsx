@@ -13,15 +13,18 @@ import {
     Segment,
     Table
 } from "semantic-ui-react";
-import {useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 import {InventoryItem, InventoryItemData} from "$prisma/client";
 import useAspidaSWR from "@aspida/swr";
 import {apiClient} from "~/utils/apiClient";
 import {Merge} from "type-fest";
 import dynamic from "next/dynamic";
 import _ from 'lodash'
+import {apiConfig, apiWithHeaders} from "~/utils/apiConfig";
+import {DirContext} from "~/pages/_app";
 
 const Inventory: NextPage = () => {
+    const {dirs} = useContext(DirContext)
     const [searchLoading, setSearchLoading] = useState(false)
     const [tableLoading, setTableLoading] = useState(true)
     const [inventoryItems, setInventoryItems] = useState<InventoryItemData[]>([])
@@ -30,31 +33,19 @@ const Inventory: NextPage = () => {
     const [newItemName, setNewItemName] = useState("")
     const [newItemCost, setNewItemCost] = useState(0)
     const [newItemDescription, setNewItemDescription] = useState("")
-    const [newItemImage, setNewItemImage] = useState('')
-
-    const [defaultItemImage, setDefaultItemImage] = useState('')
-    const [imgurl, setImgurl] = useState("")
+    const [newItemImage, setNewItemImage] = useState<string>(dirs.dummy)
 
     const [loadingImage, setLoadingImage] = useState(false)
-    const [reloadList, setReloadList] = useState(0)
 
-    useEffect(() => {
-        apiClient.protected.inventory_item.data.$get().then(res => {
-            setInventoryItems(res as unknown as InventoryItemData[])
+    const reloadList = () => {
+        apiClient.protected.inventory_item.data.$get(apiWithHeaders({})).then(res => {
+            setInventoryItems(res)
             setTableLoading(false)
-            console.log(res)
         })
-        setNewItemImage(defaultItemImage)
-    }, [reloadList])
+    }
 
     useEffect(() => {
-        apiClient.protected.inventory_item.data.imgurl.$get({query: {}}).then(res => {
-            setDefaultItemImage(res)
-            setNewItemImage(res)
-        })
-        apiClient.protected.inventory_item.data.imgurl.$get({query: {fileName: ""}}).then(res => {
-            setImgurl(res)
-        })
+        reloadList()
     }, [])
 
     const tableBody = tableLoading ?
@@ -69,11 +60,11 @@ const Inventory: NextPage = () => {
                                 </Table.Row>) :
                                 (inventoryItems.map(v => (
                                     <Table.Row key={v.id}>
-                                        <Table.Cell><img src={`${imgurl}${v.imageURL}`} width={50} height={50}/></Table.Cell>
-                                        <Table.Cell>{v.id}</Table.Cell>
-                                        <Table.Cell>{v.name}</Table.Cell>
+                                        <Table.Cell collapsing><img src={`${dirs.baseURL}${v.imageURL === '' ? dirs.dummy : dirs.itemImages + v.imageURL}`} width={50} height={50}/></Table.Cell>
+                                        <Table.Cell collapsing>{v.id}</Table.Cell>
+                                        <Table.Cell collapsing>{v.name}</Table.Cell>
                                         <Table.Cell>{v.description}</Table.Cell>
-                                        <Table.Cell>${v.cost.toFixed(2)}</Table.Cell>
+                                        <Table.Cell collapsing>${v.cost.toFixed(2)}</Table.Cell>
                                     </Table.Row>
                                 )))
 
@@ -126,12 +117,12 @@ const Inventory: NextPage = () => {
                                         <Dimmer active={loadingImage}>
                                             <Loader>Loading...</Loader>
                                         </Dimmer>
-                                        <img src={newItemImage} width={64} height={64}/>
+                                        <img src={`${dirs.baseURL}${newItemImage}`} width={64} height={64}/>
                                         <Input id={'new-file-input'} type={'file'} onChange={e => {
                                             setLoadingImage(true)
                                             e.preventDefault()
                                             const el = document.getElementById('new-file-input') as HTMLInputElement
-                                            apiClient.protected.inventory_item.data.image.$post({body: {icon: (el.files as FileList)[0]}}).then(res => {
+                                            apiClient.protected.inventory_item.data.image.$post(apiWithHeaders({body: {icon: (el.files as FileList)[0]}})).then(res => {
                                                 setNewItemImage(res)
                                                 setLoadingImage(false)
                                             })
@@ -147,7 +138,7 @@ const Inventory: NextPage = () => {
                         setNewItemName("")
                         setNewItemDescription("")
                         setNewItemCost(0)
-                        setNewItemImage(defaultItemImage)
+                        setNewItemImage(`${dirs.baseURL}${dirs.dummy}`)
                         setAddItemModalShown(false)
                     }}>
                         Cancel
@@ -157,7 +148,7 @@ const Inventory: NextPage = () => {
                         labelPosition={'right'}
                         icon={'checkmark'}
                         onClick={async ()=> {
-                            await apiClient.protected.inventory_item.data.$post({
+                            await apiClient.protected.inventory_item.data.$post(apiWithHeaders({
                                 body: {
                                     name: newItemName,
                                     description: newItemDescription,
@@ -165,9 +156,9 @@ const Inventory: NextPage = () => {
                                     active: true,
                                     imageURL: _.last(newItemImage.split('/')) ?? ""
                                 }
-                            })
+                            }))
 
-                            setReloadList(reloadList + 1)
+                            reloadList()
                             setAddItemModalShown(false)
                         }}
                         positive
@@ -179,6 +170,7 @@ const Inventory: NextPage = () => {
                     <Search
                         fluid
                         loading={searchLoading}
+                        
                         position={'center'}
                         size={'huge'}
                     />

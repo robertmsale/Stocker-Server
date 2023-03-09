@@ -15,14 +15,15 @@ import controllerFn4 from './api/login/controller'
 import controllerFn5 from './api/protected/admin/roles/controller'
 import controllerFn6 from './api/protected/admin/user/controller'
 import controllerFn7 from './api/protected/admin/user/img/controller'
-import controllerFn8 from './api/protected/events/controller'
-import controllerFn9 from './api/protected/inventory-item/controller'
-import controllerFn10 from './api/protected/inventory-item/data/controller'
-import controllerFn11 from './api/protected/inventory-item/data/image/controller'
-import controllerFn12 from './api/protected/inventory-item/data/imgurl/controller'
-import controllerFn13 from './api/protected/user/controller'
-import controllerFn14 from './api/protected/user/img/controller'
-import controllerFn15 from './api/try-login/controller'
+import controllerFn8 from './api/protected/admin/warehouse/controller'
+import controllerFn9 from './api/protected/events/controller'
+import controllerFn10 from './api/protected/inventory-item/controller'
+import controllerFn11 from './api/protected/inventory-item/data/controller'
+import controllerFn12 from './api/protected/inventory-item/data/image/controller'
+import controllerFn13 from './api/protected/inventory-item/data/imgurl/controller'
+import controllerFn14 from './api/protected/user/controller'
+import controllerFn15 from './api/protected/user/img/controller'
+import controllerFn16 from './api/try-login/controller'
 import type { FastifyInstance, RouteHandlerMethod, preValidationHookHandler, FastifySchema, FastifySchemaCompiler, RouteShorthandOptions, onRequestHookHandler, preParsingHookHandler, preHandlerHookHandler } from 'fastify'
 
 export type FrourioOptions = {
@@ -224,6 +225,7 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
   const controller13 = controllerFn13(fastify)
   const controller14 = controllerFn14(fastify)
   const controller15 = controllerFn15(fastify)
+  const controller16 = controllerFn16(fastify)
 
   fastify.register(multipart, { attachFieldsToBody: true, limits: { fileSize: 1024 ** 3 }, ...options.multipart })
 
@@ -255,7 +257,7 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
     `${basePath}/protected/admin/roles`,
     {
       onRequest: hooks1.onRequest,
-      preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['id', false, false]])),
+      preValidation: parseNumberTypeQueryParams([['id', true, false]]),
       preHandler: hooks0.preHandler
     } as RouteShorthandOptions,
     asyncMethodToHandler(controller5.get)
@@ -312,47 +314,53 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
   )
 
   fastify.get(
-    `${basePath}/protected/events`,
+    `${basePath}/protected/admin/warehouse`,
     {
+      onRequest: hooks1.onRequest,
+      preValidation: parseNumberTypeQueryParams([['id', true, false]]),
       preHandler: hooks0.preHandler
     } as RouteShorthandOptions,
     asyncMethodToHandler(controller8.get)
   )
 
+  fastify.post(
+    `${basePath}/protected/admin/warehouse`,
+    {
+      onRequest: hooks1.onRequest,
+      preHandler: hooks0.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller8.post)
+  )
+
+  fastify.patch(
+    `${basePath}/protected/admin/warehouse`,
+    {
+      onRequest: hooks1.onRequest,
+      preHandler: hooks0.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller8.patch)
+  )
+
+  fastify.delete(
+    `${basePath}/protected/admin/warehouse`,
+    {
+      onRequest: hooks1.onRequest,
+      preValidation: parseNumberTypeQueryParams([['id', false, false]]),
+      preHandler: hooks0.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller8.delete)
+  )
+
   fastify.get(
-    `${basePath}/protected/inventory-item`,
+    `${basePath}/protected/events`,
     {
       preHandler: hooks0.preHandler
     } as RouteShorthandOptions,
     asyncMethodToHandler(controller9.get)
   )
 
-  fastify.post(
-    `${basePath}/protected/inventory-item`,
-    {
-      preHandler: hooks0.preHandler
-    } as RouteShorthandOptions,
-    asyncMethodToHandler(controller9.post)
-  )
-
-  fastify.patch(
-    `${basePath}/protected/inventory-item`,
-    {
-      preHandler: hooks0.preHandler
-    } as RouteShorthandOptions,
-    asyncMethodToHandler(controller9.patch)
-  )
-
-  fastify.delete(
-    `${basePath}/protected/inventory-item`,
-    {
-      preHandler: hooks0.preHandler
-    } as RouteShorthandOptions,
-    asyncMethodToHandler(controller9.delete)
-  )
-
   fastify.get(
-    `${basePath}/protected/inventory-item/data`,
+    `${basePath}/protected/inventory-item`,
     {
       preHandler: hooks0.preHandler
     } as RouteShorthandOptions,
@@ -360,7 +368,7 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
   )
 
   fastify.post(
-    `${basePath}/protected/inventory-item/data`,
+    `${basePath}/protected/inventory-item`,
     {
       preHandler: hooks0.preHandler
     } as RouteShorthandOptions,
@@ -368,11 +376,43 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
   )
 
   fastify.patch(
-    `${basePath}/protected/inventory-item/data`,
+    `${basePath}/protected/inventory-item`,
     {
       preHandler: hooks0.preHandler
     } as RouteShorthandOptions,
     asyncMethodToHandler(controller10.patch)
+  )
+
+  fastify.delete(
+    `${basePath}/protected/inventory-item`,
+    {
+      preHandler: hooks0.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller10.delete)
+  )
+
+  fastify.get(
+    `${basePath}/protected/inventory-item/data`,
+    {
+      preHandler: hooks0.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller11.get)
+  )
+
+  fastify.post(
+    `${basePath}/protected/inventory-item/data`,
+    {
+      preHandler: hooks0.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller11.post)
+  )
+
+  fastify.patch(
+    `${basePath}/protected/inventory-item/data`,
+    {
+      preHandler: hooks0.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller11.patch)
   )
 
   fastify.get(
@@ -381,19 +421,19 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
       preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['id', false, false]])),
       preHandler: hooks0.preHandler
     } as RouteShorthandOptions,
-    asyncMethodToHandler(controller11.get)
+    asyncMethodToHandler(controller12.get)
   )
 
   fastify.post(
     `${basePath}/protected/inventory-item/data/image`,
     {
       preValidation: [
-        parseNumberTypeQueryParams([['id', false, false]]),
+        callParserIfExistsQuery(parseNumberTypeQueryParams([['id', false, false]])),
         formatMultipartData([])
       ],
       preHandler: hooks0.preHandler
     } as RouteShorthandOptions,
-    asyncMethodToHandler(controller11.post)
+    asyncMethodToHandler(controller12.post)
   )
 
   fastify.get(
@@ -401,16 +441,16 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
     {
       preHandler: hooks0.preHandler
     } as RouteShorthandOptions,
-    asyncMethodToHandler(controller12.get)
+    asyncMethodToHandler(controller13.get)
   )
 
   fastify.get(
     `${basePath}/protected/user`,
     {
-      preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['id', false, false]])),
+      preValidation: parseNumberTypeQueryParams([['id', true, false]]),
       preHandler: hooks0.preHandler
     } as RouteShorthandOptions,
-    asyncMethodToHandler(controller13.get)
+    asyncMethodToHandler(controller14.get)
   )
 
   fastify.get(
@@ -419,7 +459,7 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
       preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([['id', false, false]])),
       preHandler: hooks0.preHandler
     } as RouteShorthandOptions,
-    asyncMethodToHandler(controller14.get)
+    asyncMethodToHandler(controller15.get)
   )
 
   fastify.post(
@@ -428,11 +468,11 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
       preValidation: formatMultipartData([]),
       preHandler: hooks0.preHandler
     } as RouteShorthandOptions,
-    asyncMethodToHandler(controller14.post)
+    asyncMethodToHandler(controller15.post)
   )
 
   fastify.get(`${basePath}/try-login`,
-    asyncMethodToHandler(controller15.get))
+    asyncMethodToHandler(controller16.get))
 
   return fastify
 }

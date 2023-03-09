@@ -65,7 +65,7 @@ var require_dist = __commonJS({
     };
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.depend = void 0;
-    var depend19 = function(dependencies, cb) {
+    var depend20 = function(dependencies, cb) {
       var fn = function() {
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {
@@ -78,7 +78,7 @@ var require_dist = __commonJS({
       };
       return fn;
     };
-    exports.depend = depend19;
+    exports.depend = depend20;
   }
 });
 
@@ -88,7 +88,7 @@ var import_fastify = __toESM(require("fastify"));
 var import_helmet = __toESM(require("@fastify/helmet"));
 var import_cors = __toESM(require("@fastify/cors"));
 var import_static = __toESM(require("@fastify/static"));
-var import_jwt2 = __toESM(require("@fastify/jwt"));
+var import_jwt4 = __toESM(require("@fastify/jwt"));
 
 // service/envValues.ts
 var import_dotenv = __toESM(require("dotenv"));
@@ -278,9 +278,51 @@ function defineController5(methods, cb) {
 }
 
 // api/login/controller.ts
+var import_lodash2 = __toESM(require("lodash"));
+
+// service/encryption.ts
+var import_bcrypt = __toESM(require("bcrypt"));
+var import_client2 = require("@prisma/client");
+var import_lodash = __toESM(require("lodash"));
+var prisma2 = new import_client2.PrismaClient();
+var saltRounds = 10;
+var encryption_default = {
+  hashAndStore: async (userid, pass) => {
+    let hash = await import_bcrypt.default.hash(pass, saltRounds);
+    await prisma2.user.update({
+      where: { id: userid },
+      data: {
+        password: hash
+      }
+    });
+  },
+  compare: async (userid, pass) => {
+    let stored = await prisma2.user.findFirst({
+      where: { id: userid },
+      select: { password: true }
+    });
+    if (import_lodash.default.isNull(stored))
+      return 2 /* nouser */;
+    let comparison = await import_bcrypt.default.compare(pass, stored.password);
+    return comparison ? 0 /* correct */ : 1 /* incorrect */;
+  }
+};
+
+// api/login/controller.ts
 var controller_default5 = defineController5((fastify) => ({
   post: async (req) => {
-    return { status: 200, body: {} };
+    const usr = await prisma_default.user.findFirst({ where: { username: req.body.username } });
+    if (import_lodash2.default.isNull(usr))
+      return { status: 404 };
+    const pass_cmp = await encryption_default.compare(usr.id, req.body.password);
+    switch (pass_cmp) {
+      case 0 /* correct */:
+        return { status: 200, body: { user: usr, token: await JWT.sign({ id: usr.id }) } };
+      case 1 /* incorrect */:
+        return { status: 401 };
+      case 2 /* nouser */:
+        return { status: 404 };
+    }
   }
 }));
 
@@ -291,17 +333,17 @@ function defineController6(methods, cb) {
 }
 
 // api/protected/admin/roles/controller.ts
-var import_lodash = __toESM(require("lodash"));
+var import_lodash3 = __toESM(require("lodash"));
 var controller_default6 = defineController6(() => ({
   get: async ({ query }) => {
-    if (import_lodash.default.isUndefined(query)) {
+    if (import_lodash3.default.isUndefined(query.id)) {
       let rv2 = await prisma_default.userRole.findMany();
-      return { status: 200, body: import_lodash.default.isNull(rv2) ? [] : rv2 };
+      return { status: 200, body: import_lodash3.default.isNull(rv2) ? [] : rv2 };
     }
     let rv = await prisma_default.userRole.findFirst({
       where: { id: query.id }
     });
-    return { status: 200, body: import_lodash.default.isNull(rv) ? [] : [rv] };
+    return { status: 200, body: import_lodash3.default.isNull(rv) ? [] : [rv] };
   },
   post: async ({ body }) => {
     let rv = await prisma_default.userRole.create({
@@ -318,13 +360,13 @@ function defineController7(methods, cb) {
 }
 
 // api/protected/admin/user/controller.ts
-var import_lodash2 = __toESM(require("lodash"));
+var import_lodash4 = __toESM(require("lodash"));
 var controller_default7 = defineController7(() => ({
   post: async ({ body }) => {
     return { status: 200, body: await prisma_default.user.create({ data: body }) };
   },
   patch: async ({ body }) => {
-    let rv = await prisma_default.user.update({ where: { id: body.id }, data: import_lodash2.default.omit(body, "id") });
+    let rv = await prisma_default.user.update({ where: { id: body.id }, data: import_lodash4.default.omit(body, "id") });
     return { status: 200, body: rv };
   }
 }));
@@ -336,20 +378,20 @@ function defineController8(methods, cb) {
 }
 
 // api/protected/admin/user/img/controller.ts
-var import_lodash3 = __toESM(require("lodash"));
+var import_lodash5 = __toESM(require("lodash"));
 var import_fs_jetpack = __toESM(require("fs-jetpack"));
 var import_path = __toESM(require("path"));
 var import_uuid = require("uuid");
 var controller_default8 = defineController8(() => ({
   get: async ({ query }) => {
     let urlusr = await prisma_default.user.findFirst({ where: { id: query.id }, select: { imageURL: true } });
-    if (import_lodash3.default.isNull(urlusr))
+    if (import_lodash5.default.isNull(urlusr))
       return { status: 404 };
     return { status: 200, body: urlusr.imageURL };
   },
   post: async ({ query, body }) => {
     let usr = await prisma_default.user.findFirst({ where: { id: query.id } });
-    if (import_lodash3.default.isNull(usr))
+    if (import_lodash5.default.isNull(usr))
       return { status: 404 };
     let imgname = `${(0, import_uuid.v1)()}${import_path.default.extname(body.icon.filename)}`;
     let imgpath = import_path.default.resolve(API_UPLOAD_DIR, "profile-images", imgname);
@@ -359,14 +401,46 @@ var controller_default8 = defineController8(() => ({
   }
 }));
 
-// api/protected/events/$relay.ts
+// api/protected/admin/warehouse/$relay.ts
 var import_velona11 = __toESM(require_dist());
 function defineController9(methods, cb) {
   return cb && typeof methods !== "function" ? (0, import_velona11.depend)(methods, cb) : methods;
 }
 
-// api/protected/events/controller.ts
+// api/protected/admin/warehouse/controller.ts
+var import_lodash6 = __toESM(require("lodash"));
 var controller_default9 = defineController9(() => ({
+  get: async ({ query }) => {
+    if (import_lodash6.default.isUndefined(query.id)) {
+      return { status: 200, body: await prisma_default.warehouse.findMany() };
+    }
+    const rv = await prisma_default.warehouse.findFirst({ where: { id: query.id } });
+    if (import_lodash6.default.isNull(rv))
+      return { status: 404 };
+    return { status: 200, body: [rv] };
+  },
+  post: async ({ body }) => {
+    const rv = await prisma_default.warehouse.create({ data: body });
+    return { status: 200, body: rv };
+  },
+  patch: async ({ body }) => {
+    const rv = await prisma_default.warehouse.update({ where: { id: body.id }, data: body });
+    return { status: 200, body: rv };
+  },
+  delete: async ({ query }) => {
+    await prisma_default.warehouse.delete({ where: { id: query.id } });
+    return { status: 200 };
+  }
+}));
+
+// api/protected/events/$relay.ts
+var import_velona12 = __toESM(require_dist());
+function defineController10(methods, cb) {
+  return cb && typeof methods !== "function" ? (0, import_velona12.depend)(methods, cb) : methods;
+}
+
+// api/protected/events/controller.ts
+var controller_default10 = defineController10(() => ({
   get: async () => {
     const res = await prisma_default.events.findMany();
     return { status: 200, body: res };
@@ -374,21 +448,21 @@ var controller_default9 = defineController9(() => ({
 }));
 
 // api/protected/inventory-item/$relay.ts
-var import_velona12 = __toESM(require_dist());
-function defineController10(methods, cb) {
-  return cb && typeof methods !== "function" ? (0, import_velona12.depend)(methods, cb) : methods;
+var import_velona13 = __toESM(require_dist());
+function defineController11(methods, cb) {
+  return cb && typeof methods !== "function" ? (0, import_velona13.depend)(methods, cb) : methods;
 }
 
 // api/protected/inventory-item/controller.ts
-var import_lodash4 = __toESM(require("lodash"));
-var controller_default10 = defineController10(() => ({
+var import_lodash7 = __toESM(require("lodash"));
+var controller_default11 = defineController11(() => ({
   get: async ({ query }) => {
-    const selectsafe = import_lodash4.default.isUndefined(query) || import_lodash4.default.isUndefined(query.select) ? [] : query.select;
-    const select = import_lodash4.default.isEmpty(selectsafe) ? {} : import_lodash4.default.zipObject(selectsafe, import_lodash4.default.repeat(" ", selectsafe.length).split(" ").map(() => true));
-    const where = import_lodash4.default.omitBy(query, (v, k) => k == "select" || k == "limit" || import_lodash4.default.isUndefined(v));
-    const take = import_lodash4.default.isUndefined(query) || import_lodash4.default.isUndefined(query.limit) ? 1e6 : query.limit;
+    const selectsafe = import_lodash7.default.isUndefined(query) || import_lodash7.default.isUndefined(query.select) ? [] : query.select;
+    const select = import_lodash7.default.isEmpty(selectsafe) ? {} : import_lodash7.default.zipObject(selectsafe, import_lodash7.default.repeat(" ", selectsafe.length).split(" ").map(() => true));
+    const where = import_lodash7.default.omitBy(query, (v, k) => k == "select" || k == "limit" || import_lodash7.default.isUndefined(v));
+    const take = import_lodash7.default.isUndefined(query) || import_lodash7.default.isUndefined(query.limit) ? 1e6 : query.limit;
     const items = await prisma_default.inventoryItem.findMany(
-      import_lodash4.default.merge(select, take, where)
+      import_lodash7.default.merge(select, take, where)
     );
     return { status: 200, body: items };
   },
@@ -404,7 +478,7 @@ var controller_default10 = defineController10(() => ({
   },
   patch: async ({ body }) => {
     const rv = await prisma_default.inventoryItem.update({
-      data: import_lodash4.default.omit(body, "id"),
+      data: import_lodash7.default.omit(body, "id"),
       where: { id: body.id }
     });
     const data = await prisma_default.inventoryItemData.findFirst({ where: { id: rv.dataId } });
@@ -437,35 +511,35 @@ var controller_default10 = defineController10(() => ({
 }));
 
 // api/protected/inventory-item/data/$relay.ts
-var import_velona13 = __toESM(require_dist());
-function defineController11(methods, cb) {
-  return cb && typeof methods !== "function" ? (0, import_velona13.depend)(methods, cb) : methods;
+var import_velona14 = __toESM(require_dist());
+function defineController12(methods, cb) {
+  return cb && typeof methods !== "function" ? (0, import_velona14.depend)(methods, cb) : methods;
 }
 
 // api/protected/inventory-item/data/controller.ts
-var import_lodash5 = __toESM(require("lodash"));
-var controller_default11 = defineController11(() => ({
+var import_lodash8 = __toESM(require("lodash"));
+var controller_default12 = defineController12(() => ({
   get: async ({ query }) => {
-    const where = import_lodash5.default.omitBy(query, (v, k) => k == "select" || k == "limit" || import_lodash5.default.isUndefined(v));
+    const where = import_lodash8.default.omitBy(query, (v, k) => k == "select" || k == "limit" || import_lodash8.default.isUndefined(v));
     const items = await prisma_default.inventoryItemData.findMany(
       { where }
     );
     return { status: 200, body: items };
   },
-  post: async ({ body }) => {
+  post: async ({ body, user }) => {
     const rv = await prisma_default.inventoryItemData.create({ data: body });
     await prisma_default.events.create({ data: {
-      description: `{username} created a new item data record: ${rv.name}`,
+      description: `${user.username} created a new item data record: ${rv.name}`,
       time: new Date(),
       userid: 0
     } });
     return { status: 200, body: rv };
   },
-  patch: async ({ body }) => {
+  patch: async ({ body, user }) => {
     const before = await prisma_default.inventoryItemData.findFirst({ where: { id: body.id } });
-    const rv = await prisma_default.inventoryItemData.update({ data: import_lodash5.default.omit(body, "id"), where: { id: body.id } });
+    const rv = await prisma_default.inventoryItemData.update({ data: import_lodash8.default.omit(body, "id"), where: { id: body.id } });
     await prisma_default.events.create({ data: {
-      description: `{username} updated a new item data record: ${(before == null ? void 0 : before.name) ?? ""} -> ${rv.name}`,
+      description: `${user.username} updated a new item data record: ${(before == null ? void 0 : before.name) ?? ""} -> ${rv.name}`,
       time: new Date(),
       userid: 0
     } });
@@ -474,25 +548,26 @@ var controller_default11 = defineController11(() => ({
 }));
 
 // api/protected/inventory-item/data/image/$relay.ts
-var import_velona14 = __toESM(require_dist());
-function defineController12(methods, cb) {
-  return cb && typeof methods !== "function" ? (0, import_velona14.depend)(methods, cb) : methods;
+var import_velona15 = __toESM(require_dist());
+function defineController13(methods, cb) {
+  return cb && typeof methods !== "function" ? (0, import_velona15.depend)(methods, cb) : methods;
 }
 
 // api/protected/inventory-item/data/image/controller.ts
 var import_fs_jetpack2 = __toESM(require("fs-jetpack"));
-var import_lodash6 = __toESM(require("lodash"));
+var import_lodash9 = __toESM(require("lodash"));
 var import_path2 = __toESM(require("path"));
 var import_uuid2 = require("uuid");
+var import_jimp = __toESM(require("jimp"));
 var defaultImagePath = `${API_ORIGIN}/static/icons/dummy.svg`;
 var genImagePath = (img) => `${API_ORIGIN}/upload/item-images/${img}`;
 var relImagePath = (img) => import_path2.default.resolve(API_UPLOAD_DIR, "item-images", img);
-var controller_default12 = defineController12(() => ({
+var controller_default13 = defineController13(() => ({
   get: async ({ query }) => {
-    if (import_lodash6.default.isUndefined(query))
+    if (import_lodash9.default.isUndefined(query))
       return { status: 200, body: defaultImagePath };
     const idata = await prisma_default.inventoryItemData.findFirst({ where: { id: query.id } });
-    if (import_lodash6.default.isNull(idata))
+    if (import_lodash9.default.isNull(idata))
       return { status: 200, body: defaultImagePath };
     const relpath = relImagePath(idata.imageURL);
     if (!import_fs_jetpack2.default.exists(relpath))
@@ -501,26 +576,31 @@ var controller_default12 = defineController12(() => ({
   },
   post: async ({ body, query }) => {
     const filename = `${(0, import_uuid2.v1)()}${import_path2.default.extname(body.icon.filename)}`;
-    const filepath = ``;
-    await import_fs_jetpack2.default.writeAsync(filename, await body.icon.toBuffer());
-    await prisma_default.inventoryItemData.update({ where: { id: query.id }, data: { imageURL: `` } });
+    const filepath = `${API_UPLOAD_DIR}/item-images/${filename}`;
+    import_jimp.default.read(await body.icon.toBuffer()).then((img) => {
+      img.scaleToFit(128, 128);
+      img.writeAsync(filepath);
+    });
+    if (!import_lodash9.default.isUndefined(query) && !import_lodash9.default.isUndefined(query.id)) {
+      await prisma_default.inventoryItemData.update({ where: { id: query.id }, data: { imageURL: filename } });
+    }
     return { status: 200, body: genImagePath(import_path2.default.basename(filename)) };
   }
 }));
 
 // api/protected/inventory-item/data/imgurl/$relay.ts
-var import_velona15 = __toESM(require_dist());
-function defineController13(methods, cb) {
-  return cb && typeof methods !== "function" ? (0, import_velona15.depend)(methods, cb) : methods;
+var import_velona16 = __toESM(require_dist());
+function defineController14(methods, cb) {
+  return cb && typeof methods !== "function" ? (0, import_velona16.depend)(methods, cb) : methods;
 }
 
 // api/protected/inventory-item/data/imgurl/controller.ts
-var import_lodash7 = __toESM(require("lodash"));
+var import_lodash10 = __toESM(require("lodash"));
 var defaultImagePath2 = `${API_ORIGIN}/static/icons/dummy.svg`;
 var genImagePath2 = (img) => `${API_ORIGIN}/upload/item-images/${img}`;
-var controller_default13 = defineController13(() => ({
+var controller_default14 = defineController14(() => ({
   get: async ({ query }) => {
-    if (import_lodash7.default.isUndefined(query.fileName))
+    if (import_lodash10.default.isUndefined(query.fileName))
       return { status: 200, body: defaultImagePath2 };
     return {
       status: 200,
@@ -530,30 +610,31 @@ var controller_default13 = defineController13(() => ({
 }));
 
 // api/protected/user/$relay.ts
-var import_velona16 = __toESM(require_dist());
-function defineController14(methods, cb) {
-  return cb && typeof methods !== "function" ? (0, import_velona16.depend)(methods, cb) : methods;
+var import_velona17 = __toESM(require_dist());
+function defineController15(methods, cb) {
+  return cb && typeof methods !== "function" ? (0, import_velona17.depend)(methods, cb) : methods;
 }
 
 // api/protected/user/controller.ts
-var import_lodash8 = __toESM(require("lodash"));
+var import_lodash11 = __toESM(require("lodash"));
 var defaultImagePath3 = `${API_ORIGIN}/static/icons/dummy.svg`;
-var controller_default14 = defineController14(() => ({
+var controller_default15 = defineController15(() => ({
   get: async (req) => {
-    if (import_lodash8.default.isUndefined(req.query)) {
-      return { status: 200, body: req.user };
+    if (import_lodash11.default.isUndefined(req.query.id)) {
+      let rv2 = await prisma_default.user.findMany();
+      return { status: 200, body: rv2.map((v) => import_lodash11.default.omit(v, "password")) };
     }
-    let rv = await prisma_default.user.findFirst({ where: { id: req.query.id } });
-    if (import_lodash8.default.isNull(rv))
+    let rv = await prisma_default.user.findFirst({ where: { id: req.query.id }, select: { password: false } });
+    if (import_lodash11.default.isNull(rv))
       return { status: 404 };
-    return { status: 200, body: rv };
+    return { status: 200, body: [import_lodash11.default.omit(rv, "password")] };
   }
 }));
 
 // api/protected/user/img/$relay.ts
-var import_velona17 = __toESM(require_dist());
-function defineController15(methods, cb) {
-  return cb && typeof methods !== "function" ? (0, import_velona17.depend)(methods, cb) : methods;
+var import_velona18 = __toESM(require_dist());
+function defineController16(methods, cb) {
+  return cb && typeof methods !== "function" ? (0, import_velona18.depend)(methods, cb) : methods;
 }
 
 // service/dirs.ts
@@ -566,17 +647,17 @@ var dirs = {
 var dirs_default = dirs;
 
 // api/protected/user/img/controller.ts
-var import_lodash9 = __toESM(require("lodash"));
+var import_lodash12 = __toESM(require("lodash"));
 var import_uuid3 = require("uuid");
 var import_path3 = __toESM(require("path"));
 var import_fs_jetpack3 = __toESM(require("fs-jetpack"));
-var controller_default15 = defineController15(() => ({
+var controller_default16 = defineController16(() => ({
   get: async (req) => {
-    if (import_lodash9.default.isUndefined(req.query)) {
+    if (import_lodash12.default.isUndefined(req.query)) {
       return { status: 200, body: `${dirs_default.baseURL}${dirs_default.profileImages}${req.user.imageURL}` };
     }
     const user = await prisma_default.user.findFirst({ where: { id: req.query.id } });
-    if (import_lodash9.default.isNull(user))
+    if (import_lodash12.default.isNull(user))
       return { status: 404 };
     return { status: 200, body: `${dirs_default.baseURL}${dirs_default.profileImages}${user.imageURL}` };
   },
@@ -591,17 +672,22 @@ var controller_default15 = defineController15(() => ({
 }));
 
 // api/try-login/$relay.ts
-var import_velona18 = __toESM(require_dist());
-function defineController16(methods, cb) {
-  return cb && typeof methods !== "function" ? (0, import_velona18.depend)(methods, cb) : methods;
+var import_velona19 = __toESM(require_dist());
+function defineController17(methods, cb) {
+  return cb && typeof methods !== "function" ? (0, import_velona19.depend)(methods, cb) : methods;
 }
 
 // api/try-login/controller.ts
-var controller_default16 = defineController16(() => ({
+var import_lodash13 = __toESM(require("lodash"));
+var controller_default17 = defineController17(() => ({
   get: async (req) => {
+    const { id } = JWT.verify(req.headers.authorization);
+    const user = await prisma_default.user.findFirst({ where: { id } });
+    if (import_lodash13.default.isNull(user))
+      return { status: 404 };
     return {
       status: 200,
-      body: {}
+      body: import_lodash13.default.omit(user, "password")
     };
   }
 }));
@@ -647,7 +733,7 @@ var createTypedParamsHandler = (numberTypeParams) => (req, reply, done) => {
   }
   done();
 };
-var formatMultipartData = (arrayTypeKeys) => (req, _12, done) => {
+var formatMultipartData = (arrayTypeKeys) => (req, _15, done) => {
   const body = req.body;
   for (const [key] of arrayTypeKeys) {
     if (body[key] === void 0)
@@ -706,6 +792,7 @@ var server_default = (fastify, options = {}) => {
   const controller13 = controller_default14(fastify);
   const controller14 = controller_default15(fastify);
   const controller15 = controller_default16(fastify);
+  const controller16 = controller_default17(fastify);
   fastify.register(import_multipart.default, { attachFieldsToBody: true, limits: { fileSize: 1024 ** 3 }, ...options.multipart });
   fastify.get(
     basePath || "/",
@@ -738,7 +825,7 @@ var server_default = (fastify, options = {}) => {
     `${basePath}/protected/admin/roles`,
     {
       onRequest: hooks1.onRequest,
-      preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([["id", false, false]])),
+      preValidation: parseNumberTypeQueryParams([["id", true, false]]),
       preHandler: hooks0.preHandler
     },
     asyncMethodToHandler(controller5.get)
@@ -789,60 +876,94 @@ var server_default = (fastify, options = {}) => {
     asyncMethodToHandler(controller7.post)
   );
   fastify.get(
-    `${basePath}/protected/events`,
+    `${basePath}/protected/admin/warehouse`,
     {
+      onRequest: hooks1.onRequest,
+      preValidation: parseNumberTypeQueryParams([["id", true, false]]),
       preHandler: hooks0.preHandler
     },
     asyncMethodToHandler(controller8.get)
   );
+  fastify.post(
+    `${basePath}/protected/admin/warehouse`,
+    {
+      onRequest: hooks1.onRequest,
+      preHandler: hooks0.preHandler
+    },
+    asyncMethodToHandler(controller8.post)
+  );
+  fastify.patch(
+    `${basePath}/protected/admin/warehouse`,
+    {
+      onRequest: hooks1.onRequest,
+      preHandler: hooks0.preHandler
+    },
+    asyncMethodToHandler(controller8.patch)
+  );
+  fastify.delete(
+    `${basePath}/protected/admin/warehouse`,
+    {
+      onRequest: hooks1.onRequest,
+      preValidation: parseNumberTypeQueryParams([["id", false, false]]),
+      preHandler: hooks0.preHandler
+    },
+    asyncMethodToHandler(controller8.delete)
+  );
   fastify.get(
-    `${basePath}/protected/inventory-item`,
+    `${basePath}/protected/events`,
     {
       preHandler: hooks0.preHandler
     },
     asyncMethodToHandler(controller9.get)
   );
-  fastify.post(
-    `${basePath}/protected/inventory-item`,
-    {
-      preHandler: hooks0.preHandler
-    },
-    asyncMethodToHandler(controller9.post)
-  );
-  fastify.patch(
-    `${basePath}/protected/inventory-item`,
-    {
-      preHandler: hooks0.preHandler
-    },
-    asyncMethodToHandler(controller9.patch)
-  );
-  fastify.delete(
-    `${basePath}/protected/inventory-item`,
-    {
-      preHandler: hooks0.preHandler
-    },
-    asyncMethodToHandler(controller9.delete)
-  );
   fastify.get(
-    `${basePath}/protected/inventory-item/data`,
+    `${basePath}/protected/inventory-item`,
     {
       preHandler: hooks0.preHandler
     },
     asyncMethodToHandler(controller10.get)
   );
   fastify.post(
-    `${basePath}/protected/inventory-item/data`,
+    `${basePath}/protected/inventory-item`,
     {
       preHandler: hooks0.preHandler
     },
     asyncMethodToHandler(controller10.post)
   );
   fastify.patch(
-    `${basePath}/protected/inventory-item/data`,
+    `${basePath}/protected/inventory-item`,
     {
       preHandler: hooks0.preHandler
     },
     asyncMethodToHandler(controller10.patch)
+  );
+  fastify.delete(
+    `${basePath}/protected/inventory-item`,
+    {
+      preHandler: hooks0.preHandler
+    },
+    asyncMethodToHandler(controller10.delete)
+  );
+  fastify.get(
+    `${basePath}/protected/inventory-item/data`,
+    {
+      preHandler: hooks0.preHandler
+    },
+    asyncMethodToHandler(controller11.get)
+  );
+  fastify.post(
+    `${basePath}/protected/inventory-item/data`,
+    {
+      preHandler: hooks0.preHandler
+    },
+    asyncMethodToHandler(controller11.post)
+  );
+  fastify.patch(
+    `${basePath}/protected/inventory-item/data`,
+    {
+      preHandler: hooks0.preHandler
+    },
+    asyncMethodToHandler(controller11.patch)
   );
   fastify.get(
     `${basePath}/protected/inventory-item/data/image`,
@@ -850,33 +971,33 @@ var server_default = (fastify, options = {}) => {
       preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([["id", false, false]])),
       preHandler: hooks0.preHandler
     },
-    asyncMethodToHandler(controller11.get)
+    asyncMethodToHandler(controller12.get)
   );
   fastify.post(
     `${basePath}/protected/inventory-item/data/image`,
     {
       preValidation: [
-        parseNumberTypeQueryParams([["id", false, false]]),
+        callParserIfExistsQuery(parseNumberTypeQueryParams([["id", false, false]])),
         formatMultipartData([])
       ],
       preHandler: hooks0.preHandler
     },
-    asyncMethodToHandler(controller11.post)
+    asyncMethodToHandler(controller12.post)
   );
   fastify.get(
     `${basePath}/protected/inventory-item/data/imgurl`,
     {
       preHandler: hooks0.preHandler
     },
-    asyncMethodToHandler(controller12.get)
+    asyncMethodToHandler(controller13.get)
   );
   fastify.get(
     `${basePath}/protected/user`,
     {
-      preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([["id", false, false]])),
+      preValidation: parseNumberTypeQueryParams([["id", true, false]]),
       preHandler: hooks0.preHandler
     },
-    asyncMethodToHandler(controller13.get)
+    asyncMethodToHandler(controller14.get)
   );
   fastify.get(
     `${basePath}/protected/user/img`,
@@ -884,7 +1005,7 @@ var server_default = (fastify, options = {}) => {
       preValidation: callParserIfExistsQuery(parseNumberTypeQueryParams([["id", false, false]])),
       preHandler: hooks0.preHandler
     },
-    asyncMethodToHandler(controller14.get)
+    asyncMethodToHandler(controller15.get)
   );
   fastify.post(
     `${basePath}/protected/user/img`,
@@ -892,49 +1013,19 @@ var server_default = (fastify, options = {}) => {
       preValidation: formatMultipartData([]),
       preHandler: hooks0.preHandler
     },
-    asyncMethodToHandler(controller14.post)
+    asyncMethodToHandler(controller15.post)
   );
   fastify.get(
     `${basePath}/try-login`,
-    asyncMethodToHandler(controller15.get)
+    asyncMethodToHandler(controller16.get)
   );
   return fastify;
 };
 
 // service/app.ts
 var import_websocket = __toESM(require("@fastify/websocket"));
-
-// service/encryption.ts
-var import_bcrypt = __toESM(require("bcrypt"));
-var import_client2 = require("@prisma/client");
-var import_lodash10 = __toESM(require("lodash"));
-var prisma2 = new import_client2.PrismaClient();
-var saltRounds = 10;
-var encryption_default = {
-  hashAndStore: async (userid, pass) => {
-    let hash = await import_bcrypt.default.hash(pass, saltRounds);
-    await prisma2.user.update({
-      where: { id: userid },
-      data: {
-        password: hash
-      }
-    });
-  },
-  compare: async (userid, pass) => {
-    let stored = await prisma2.user.findFirst({
-      where: { id: userid },
-      select: { password: true }
-    });
-    if (import_lodash10.default.isNull(stored))
-      return 2 /* nouser */;
-    let comparison = await import_bcrypt.default.compare(pass, stored.password);
-    return comparison ? 0 /* correct */ : 1 /* incorrect */;
-  }
-};
-
-// service/app.ts
 var import_client3 = require("@prisma/client");
-var import_lodash11 = __toESM(require("lodash"));
+var import_lodash14 = __toESM(require("lodash"));
 var import_fs = __toESM(require("fs"));
 var process2 = __toESM(require("process"));
 var seed = async () => {
@@ -954,7 +1045,7 @@ var seed = async () => {
     }
   });
   let admin = await prisma3.user.findFirst({ where: { id: 1 } });
-  if (import_lodash11.default.isNull(admin)) {
+  if (import_lodash14.default.isNull(admin)) {
     admin = await prisma3.user.create({
       data: {
         email: "",
@@ -969,14 +1060,35 @@ var seed = async () => {
     });
   }
   await encryption_default.hashAndStore(admin.id, "admin");
+  const warehouseSearch = await prisma3.warehouse.findFirst({ where: { id: 1 } });
+  if (import_lodash14.default.isNull(warehouseSearch)) {
+    await prisma3.warehouse.create({ data: {
+      address: "1 Apple Park Way, Cupertino, CA 95014",
+      name: "Default Warehouse"
+    } });
+  }
 };
 var init = (serverFactory) => {
   seed();
   const app = (0, import_fastify.default)({ serverFactory });
-  app.register(import_helmet.default, { crossOriginResourcePolicy: false });
-  app.register(
-    import_cors.default
-  );
+  app.register(import_helmet.default, {
+    crossOriginResourcePolicy: {
+      policy: "cross-origin"
+    },
+    permittedCrossDomainPolicies: { permittedPolicies: "all" },
+    contentSecurityPolicy: true,
+    referrerPolicy: true,
+    crossOriginEmbedderPolicy: true,
+    crossOriginOpenerPolicy: true,
+    global: true
+  });
+  app.register(import_cors.default, {
+    origin: true,
+    allowedHeaders: "*",
+    strictPreflight: false,
+    preflightContinue: true,
+    credentials: true
+  });
   app.register(import_websocket.default);
   app.register(import_static.default, {
     root: import_path4.default.join(__dirname, "static"),
@@ -994,12 +1106,12 @@ var init = (serverFactory) => {
     app.after(() => {
       app.register(import_static.default, {
         root: API_UPLOAD_DIR,
-        prefix: "/upload/",
+        prefix: "/uploads/",
         decorateReply: false
       });
     });
   }
-  app.register(import_jwt2.default, { secret: API_JWT_SECRET });
+  app.register(import_jwt4.default, { secret: API_JWT_SECRET });
   server_default(app, { basePath: API_BASE_PATH });
   return app;
 };

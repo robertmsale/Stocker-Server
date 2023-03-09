@@ -9,7 +9,7 @@ export default class JWT {
         return {id: -1}
     }
 
-    static sign(token: string): Promise<string> {
+    static sign(token: string | Buffer | object): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             jwt.sign(token, API_JWT_SECRET, (err, token) => {
                 if (err) {

@@ -1,5 +1,5 @@
 import Head from 'next/head'
-import {useCallback, useEffect, useState} from 'react'
+import {useCallback, useContext, useEffect, useState} from 'react'
 import useAspidaSWR from '@aspida/swr'
 import styles from '~/styles/Home.module.css'
 import { apiClient } from '~/utils/apiClient'
@@ -8,14 +8,16 @@ import type { FormEvent, ChangeEvent } from 'react'
 import Layout from '~/components/Layout'
 import type { NextPage } from 'next'
 import {Container, Feed, Header, Icon, Segment} from "semantic-ui-react";
+import {UserContext} from "~/pages/_app";
+import {apiConfig, apiWithHeaders} from "~/utils/apiConfig";
 
 
 
 const Home: NextPage = () => {
     const [events, setEvents] = useState([] as Events[])
-
+    const {user} = useContext(UserContext)
     useEffect(() => {
-        apiClient.protected.events.$get().then(res => {
+        apiClient.protected.events.$get(apiWithHeaders({})).then(res => {
             setEvents(res)
         })
     }, [])
@@ -35,7 +37,7 @@ const Home: NextPage = () => {
 
     return (<>
         <Container text>
-            <Header>Welcome back, {'{username}'}!</Header>
+            <Header>Welcome back, {user?.username ?? '{username}'}!</Header>
             <Segment textAlign={"center"}>
                 <Header size={'small'}>Events</Header>
                 <Feed >

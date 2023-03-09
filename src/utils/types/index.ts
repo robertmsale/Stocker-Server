@@ -18,3 +18,4 @@ export type Dirs = {
   dummy: '/static/icons/dummy.svg'
   profileImages: '/uploads/profile-images/'
 }
+

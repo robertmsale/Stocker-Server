@@ -3,7 +3,7 @@ import _ from 'lodash'
 import prisma from '$/service/prisma'
 export default defineController(() => ({
     get: async ({ query }) => {
-        if(_.isUndefined(query)) {
+        if(_.isUndefined(query.id)) {
             let rv = await prisma.userRole.findMany()
             return {status: 200, body: _.isNull(rv) ? [] : rv}
         }
