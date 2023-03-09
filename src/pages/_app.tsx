@@ -25,12 +25,15 @@ import {User} from "$prisma/client";
 import _ from "lodash";
 import {apiClient} from "~/utils/apiClient";
 import {Dirs} from "~/utils/types";
+import {apiWithHeaders} from "~/utils/apiConfig";
+import {Except} from "type-fest";
 
-export const UserContext = createContext({} as { user: User | undefined, setUser: (user: User | undefined) => void })
+type Usernp = Except<User, 'password'>
+export const UserContext = createContext({} as { user: Usernp | undefined, setUser: (user: Usernp | undefined) => void })
 export const DirContext = createContext({} as { dirs: Dirs, setDirs: (dir: Dirs) => void })
 const MyApp = ({Component, pageProps}: AppProps) => {
     const [sidebarShown, setSidebarShown] = useState(false)
-    const [user, setUser] = useState<User | undefined>(undefined)
+    const [user, setUser] = useState<Usernp | undefined>(undefined)
 
     const [loginShown, setLoginShown] = useState(false)
     const [username, setUsername] = useState('')
@@ -41,6 +44,14 @@ const MyApp = ({Component, pageProps}: AppProps) => {
         profileImages: "/uploads/profile-images/",
         dummy: "/static/icons/dummy.svg"
     })
+
+    useEffect(() => {
+        if (_.isUndefined(user) && localStorage.getItem('token') !== '') {
+            apiClient.try_login.$get(apiWithHeaders({})).then(res => {
+                setUser(res)
+            })
+        }
+    },[user])
 
     useEffect(() => {
         apiClient.dirs.$get().then(res => {

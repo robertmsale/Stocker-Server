@@ -1,19 +1,20 @@
-import {Except, SetRequired} from "type-fest";
+import {Except, Merge, SetRequired} from "type-fest";
 import {User} from "$prisma/client";
+import {UserRole} from "@prisma/client";
 
 export type Methods = {
     post: {
         reqHeader: {
           authorization: string
         }
-        reqBody: Except<User, 'id'>
+        reqBody: Merge<Except<User, 'id'>, {roles?: UserRole[]}>
         resBody: User
     }
     patch: {
         reqHeader: {
           authorization: string
         }
-        reqBody: SetRequired<Partial<User>, 'id'>,
+        reqBody: Merge<SetRequired<Partial<User>, 'id'>, {roles?: UserRole[]}>,
         resBody: User
     }
 }

@@ -363,10 +363,29 @@ function defineController7(methods, cb) {
 var import_lodash4 = __toESM(require("lodash"));
 var controller_default7 = defineController7(() => ({
   post: async ({ body }) => {
-    return { status: 200, body: await prisma_default.user.create({ data: body }) };
+    console.log(body);
+    return { status: 200, body: await prisma_default.user.create({ data: {
+      email: body.email,
+      username: body.username,
+      password: body.password,
+      active: body.active,
+      roles: {
+        connect: import_lodash4.default.isUndefined(body.roles) ? [] : body.roles.map((v) => ({ id: v.id }))
+      },
+      imageURL: body.imageURL
+    } }) };
   },
   patch: async ({ body }) => {
-    let rv = await prisma_default.user.update({ where: { id: body.id }, data: import_lodash4.default.omit(body, "id") });
+    let rv = await prisma_default.user.update({ where: { id: body.id }, data: {
+      email: body.email,
+      username: body.username,
+      password: body.password,
+      active: body.active,
+      roles: {
+        connect: import_lodash4.default.isUndefined(body.roles) ? [] : body.roles.map((v) => ({ id: v.id }))
+      },
+      imageURL: body.imageURL
+    } });
     return { status: 200, body: rv };
   }
 }));
