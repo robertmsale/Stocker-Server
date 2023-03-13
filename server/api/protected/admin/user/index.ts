@@ -8,13 +8,13 @@ export type Methods = {
           authorization: string
         }
         reqBody: Merge<Except<User, 'id'>, {roles?: UserRole[]}>
-        resBody: User
+        resBody: Except<User, 'password'>
     }
     patch: {
         reqHeader: {
           authorization: string
         }
         reqBody: Merge<SetRequired<Partial<User>, 'id'>, {roles?: UserRole[]}>,
-        resBody: User
+        resBody: Except<User, 'password'>
     }
 }

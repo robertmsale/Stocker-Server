@@ -8,11 +8,19 @@ body {
     Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+@media print {
+  .noPrint {
+    display: none !important;
+  }
+  .yesPrint {
+    display: block;
+  }
 }
-
-* {
-  box-sizing: border-box;
+@media screen {
+    .noPrint {
+        display: block !important;
+    }
+    .yesPrint {
+        display: none !important;
+    }
 }

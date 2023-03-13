@@ -88,7 +88,6 @@ var import_fastify = __toESM(require("fastify"));
 var import_helmet = __toESM(require("@fastify/helmet"));
 var import_cors = __toESM(require("@fastify/cors"));
 var import_static = __toESM(require("@fastify/static"));
-var import_jwt4 = __toESM(require("@fastify/jwt"));
 
 // service/envValues.ts
 var import_dotenv = __toESM(require("dotenv"));
@@ -311,6 +310,7 @@ var encryption_default = {
 // api/login/controller.ts
 var controller_default5 = defineController5((fastify) => ({
   post: async (req) => {
+    console.log(req);
     const usr = await prisma_default.user.findFirst({ where: { username: req.body.username } });
     if (import_lodash2.default.isNull(usr))
       return { status: 404 };
@@ -364,29 +364,33 @@ var import_lodash4 = __toESM(require("lodash"));
 var controller_default7 = defineController7(() => ({
   post: async ({ body }) => {
     console.log(body);
-    return { status: 200, body: await prisma_default.user.create({ data: {
+    const newuser = await prisma_default.user.create({ data: {
       email: body.email,
       username: body.username,
-      password: body.password,
-      active: body.active,
-      roles: {
-        connect: import_lodash4.default.isUndefined(body.roles) ? [] : body.roles.map((v) => ({ id: v.id }))
-      },
-      imageURL: body.imageURL
-    } }) };
-  },
-  patch: async ({ body }) => {
-    let rv = await prisma_default.user.update({ where: { id: body.id }, data: {
-      email: body.email,
-      username: body.username,
-      password: body.password,
+      password: "",
       active: body.active,
       roles: {
         connect: import_lodash4.default.isUndefined(body.roles) ? [] : body.roles.map((v) => ({ id: v.id }))
       },
       imageURL: body.imageURL
     } });
-    return { status: 200, body: rv };
+    await encryption_default.hashAndStore(newuser.id, body.password);
+    return { status: 200, body: import_lodash4.default.omit(newuser, "password") };
+  },
+  patch: async ({ body }) => {
+    let rv = await prisma_default.user.update({ where: { id: body.id }, data: {
+      email: body.email,
+      username: body.username,
+      active: body.active,
+      roles: {
+        connect: import_lodash4.default.isUndefined(body.roles) ? [] : body.roles.map((v) => ({ id: v.id }))
+      },
+      imageURL: body.imageURL
+    } });
+    if (!import_lodash4.default.isUndefined(body.password)) {
+      await encryption_default.hashAndStore(rv.id, body.password);
+    }
+    return { status: 200, body: import_lodash4.default.omit(rv, "password") };
   }
 }));
 
@@ -476,44 +480,41 @@ function defineController11(methods, cb) {
 var import_lodash7 = __toESM(require("lodash"));
 var controller_default11 = defineController11(() => ({
   get: async ({ query }) => {
-    const selectsafe = import_lodash7.default.isUndefined(query) || import_lodash7.default.isUndefined(query.select) ? [] : query.select;
-    const select = import_lodash7.default.isEmpty(selectsafe) ? {} : import_lodash7.default.zipObject(selectsafe, import_lodash7.default.repeat(" ", selectsafe.length).split(" ").map(() => true));
-    const where = import_lodash7.default.omitBy(query, (v, k) => k == "select" || k == "limit" || import_lodash7.default.isUndefined(v));
-    const take = import_lodash7.default.isUndefined(query) || import_lodash7.default.isUndefined(query.limit) ? 1e6 : query.limit;
-    const items = await prisma_default.inventoryItem.findMany(
-      import_lodash7.default.merge(select, take, where)
-    );
+    console.log(query);
+    const items = await prisma_default.inventoryItem.findMany({
+      where: { id: import_lodash7.default.toNumber(query == null ? void 0 : query.id) }
+    });
     return { status: 200, body: items };
   },
-  post: async ({ body }) => {
+  post: async ({ body, user }) => {
     const rv = await prisma_default.inventoryItem.create({ data: body });
     const data = await prisma_default.inventoryItemData.findFirst({ where: { id: rv.dataId } });
     await prisma_default.events.create({ data: {
-      description: `{username} scanned in a new item: ${(data == null ? void 0 : data.name) ?? ""}`,
+      description: `${user.username} scanned in a new item: ${(data == null ? void 0 : data.name) ?? ""}`,
       time: new Date(),
       userid: 0
     } });
     return { status: 200, body: rv };
   },
-  patch: async ({ body }) => {
+  patch: async ({ body, user }) => {
     const rv = await prisma_default.inventoryItem.update({
       data: import_lodash7.default.omit(body, "id"),
       where: { id: body.id }
     });
     const data = await prisma_default.inventoryItemData.findFirst({ where: { id: rv.dataId } });
     await prisma_default.events.create({ data: {
-      description: `{username} updated an item's information: ${(data == null ? void 0 : data.name) ?? ""}`,
+      description: `${user.username} updated an item's information: ${(data == null ? void 0 : data.name) ?? ""}`,
       time: new Date(),
       userid: 0
     } });
     return { status: 200, body: rv };
   },
-  delete: async ({ body }) => {
+  delete: async ({ body, user }) => {
     for (let id of body) {
       const rv = await prisma_default.inventoryItem.findFirst({ where: { id } });
       const data = await prisma_default.inventoryItemData.findFirst({ where: { id: (rv == null ? void 0 : rv.dataId) ?? 0 } });
       await prisma_default.events.create({ data: {
-        description: `{username} scanned an item out of stock: ${(data == null ? void 0 : data.name) ?? ""}`,
+        description: `${user.username} scanned an item out of stock: ${(data == null ? void 0 : data.name) ?? ""}`,
         time: new Date(),
         userid: 0
       } });
@@ -540,8 +541,17 @@ var import_lodash8 = __toESM(require("lodash"));
 var controller_default12 = defineController12(() => ({
   get: async ({ query }) => {
     const where = import_lodash8.default.omitBy(query, (v, k) => k == "select" || k == "limit" || import_lodash8.default.isUndefined(v));
+    console.log(where);
     const items = await prisma_default.inventoryItemData.findMany(
-      { where }
+      {
+        where: {
+          id: import_lodash8.default.isUndefined(where.id) ? void 0 : import_lodash8.default.toNumber(where.id),
+          name: import_lodash8.default.isUndefined(where.name) ? void 0 : { contains: import_lodash8.default.toString(where.name) },
+          description: import_lodash8.default.isUndefined(where.description) ? void 0 : { contains: import_lodash8.default.toString(where.description) },
+          cost: import_lodash8.default.isUndefined(where.cost) ? void 0 : import_lodash8.default.toNumber(where.cost),
+          active: import_lodash8.default.isUndefined(where.active) ? void 0 : where.active == "true"
+        }
+      }
     );
     return { status: 200, body: items };
   },
@@ -1103,7 +1113,6 @@ var init = (serverFactory) => {
   });
   app.register(import_cors.default, {
     origin: true,
-    allowedHeaders: "*",
     strictPreflight: false,
     preflightContinue: true,
     credentials: true
@@ -1130,7 +1139,6 @@ var init = (serverFactory) => {
       });
     });
   }
-  app.register(import_jwt4.default, { secret: API_JWT_SECRET });
   server_default(app, { basePath: API_BASE_PATH });
   return app;
 };

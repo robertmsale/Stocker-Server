@@ -7,8 +7,17 @@ import _ from 'lodash'
 export default defineController(() => ({
     get: async ({query}) => {
         const where = _.omitBy(query, (v, k) => k == 'select' || k == 'limit' || _.isUndefined(v))
+        console.log(where)
         const items = await prisma.inventoryItemData.findMany(
-            {where}
+            {
+                where: {
+                    id: _.isUndefined(where.id) ? undefined : _.toNumber(where.id),
+                    name: _.isUndefined(where.name) ? undefined : {contains: _.toString(where.name)},
+                    description: _.isUndefined(where.description) ? undefined : {contains: _.toString(where.description)},
+                    cost: _.isUndefined(where.cost) ? undefined : _.toNumber(where.cost),
+                    active: _.isUndefined(where.active) ? undefined : where.active == 'true',
+                },
+            }
         )
         return { status: 200, body: items}
     },

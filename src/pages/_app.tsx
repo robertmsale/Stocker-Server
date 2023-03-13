@@ -80,6 +80,10 @@ const MyApp = ({Component, pageProps}: AppProps) => {
             text: 'Users'
         },
         {
+            href: '/user-locations',
+            text: 'User Locations'
+        },
+        {
             href: '/warehouses',
             text: 'Warehouses'
         },
@@ -100,10 +104,10 @@ const MyApp = ({Component, pageProps}: AppProps) => {
 
     const MainComponent = () => {
         if (!_.isUndefined(user)) {
-            return <Component {...pageProps} />
+            return <Component className={'yesPrint'} {...pageProps} />
         } else {
             return (
-                <Container text style={{padding: '1rem'}}>
+                <Container text style={{padding: '1rem'}} className={'yesPrint'}>
                     <Header>
                         You are not logged in!
                     </Header>
@@ -121,6 +125,7 @@ const MyApp = ({Component, pageProps}: AppProps) => {
             </Head>
             <Sidebar.Pushable style={{height: '100vh', width: 'auto'}}>
                 <Sidebar as={Menu}
+                         className={'noPrint'}
                          animation={'push'}
                          inverted
                          onHide={() => setSidebarShown(false)}
@@ -139,6 +144,7 @@ const MyApp = ({Component, pageProps}: AppProps) => {
                         textAlign={'center'}
                         style={{minWidth: 350, padding: '1em 0em'}}
                         vertical
+                        className={'noPrint'}
                     >
                         <Container fluid>
                             <Menu inverted pointing secondary size={'large'}>
@@ -223,7 +229,7 @@ const MyApp = ({Component, pageProps}: AppProps) => {
                                 localStorage.setItem('token', res.token)
                                 setLoginShown(false)
                             }).catch(err => {
-                                alert('Login failed!')
+                                alert('Login failed!\n' + err)
                             })
                         }}
                     />

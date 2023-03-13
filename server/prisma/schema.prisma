@@ -15,21 +15,20 @@ model Events {
 }
 
 model User {
-  id             Int           @id @default(autoincrement())
-  username       String
-  password       String
-  email          String
-  imageURL       String
-  roles          UserRole[]
-  active         Boolean
-  userLocation   UserLocation? @relation(fields: [userLocationId], references: [id], onUpdate: Cascade, onDelete: Cascade)
-  userLocationId Int?          @unique
+  id       Int             @id @default(autoincrement())
+  username String
+  password String
+  email    String
+  imageURL String
+  roles    UserRole[]
+  active   Boolean
+  items    InventoryItem[]
 }
 
 model UserToken {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
-  userId    Int
+  id      Int      @id @default(autoincrement())
+  token   String   @unique
+  userId  Int
   expires DateTime @default(now())
 }
 
@@ -46,13 +45,13 @@ model Task {
 }
 
 model InventoryItem {
-  id             Int               @id @default(autoincrement())
-  dataId         Int
-  data           InventoryItemData @relation(fields: [dataId], references: [id])
-  warehouseId    Int?
-  warehouse      Warehouse?        @relation(fields: [warehouseId], references: [id])
-  userLocationId Int?
-  userLocation   UserLocation?     @relation(fields: [userLocationId], references: [id])
+  id          Int               @id @default(autoincrement())
+  dataId      Int
+  data        InventoryItemData @relation(fields: [dataId], references: [id])
+  warehouseId Int?
+  warehouse   Warehouse?        @relation(fields: [warehouseId], references: [id])
+  User        User?             @relation(fields: [userId], references: [id])
+  userId      Int?
 }
 
 model InventoryItemData {
@@ -66,19 +65,10 @@ model InventoryItemData {
 }
 
 model Warehouse {
-  id            Int             @id @default(autoincrement())
-  name          String
-  address       String
-  latitude      String?
-  longitude     String?
-  items         InventoryItem[]
-  userLocations UserLocation[]
-}
-
-model UserLocation {
-  id          Int             @id @default(autoincrement())
-  warehouse   Warehouse?      @relation(fields: [warehouseId], references: [id])
-  warehouseId Int?
-  user        User?
-  items       InventoryItem[]
+  id        Int             @id @default(autoincrement())
+  name      String
+  address   String
+  latitude  String?
+  longitude String?
+  items     InventoryItem[]
 }

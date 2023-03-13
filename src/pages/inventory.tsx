@@ -22,10 +22,11 @@ import dynamic from "next/dynamic";
 import _ from 'lodash'
 import {apiConfig, apiWithHeaders} from "~/utils/apiConfig";
 import {DirContext} from "~/pages/_app";
+import TableFieldEditor from "~/components/TableFieldEditor";
 
 const Inventory: NextPage = () => {
     const {dirs} = useContext(DirContext)
-    const [searchLoading, setSearchLoading] = useState(false)
+    const [search, setSearch] = useState("")
     const [tableLoading, setTableLoading] = useState(true)
     const [inventoryItems, setInventoryItems] = useState<InventoryItemData[]>([])
     const [addItemModalShown, setAddItemModalShown] = useState(false)
@@ -48,6 +49,18 @@ const Inventory: NextPage = () => {
         reloadList()
     }, [])
 
+    const tableFilter = (v: InventoryItemData) => {
+        try {
+            return search === '' ||
+                v.id.toString(10) === search ||
+                _.get(v.cost.toString(10).match(search), 'length', 0) > 0 ||
+                _.get(v.description.match(search), 'length', 0) > 0 ||
+                _.get(v.name.match(search), 'length', 0) > 0
+        } catch (e) {
+            return true
+        }
+    }
+
     const tableBody = tableLoading ?
                                 (<Table.Row>
                                     <Table.Cell rowSpan={3} colSpan={5}>
@@ -58,13 +71,40 @@ const Inventory: NextPage = () => {
                                         </Dimmer.Dimmable>
                                     </Table.Cell>
                                 </Table.Row>) :
-                                (inventoryItems.map(v => (
-                                    <Table.Row key={v.id}>
+                                (inventoryItems.filter(tableFilter).map((v, i) => (
+                                    <Table.Row
+                                        key={v.id}
+                                    >
                                         <Table.Cell collapsing><img src={`${dirs.baseURL}${v.imageURL === '' ? dirs.dummy : dirs.itemImages + v.imageURL}`} width={50} height={50}/></Table.Cell>
                                         <Table.Cell collapsing>{v.id}</Table.Cell>
-                                        <Table.Cell collapsing>{v.name}</Table.Cell>
-                                        <Table.Cell>{v.description}</Table.Cell>
-                                        <Table.Cell collapsing>${v.cost.toFixed(2)}</Table.Cell>
+                                        <Table.Cell collapsing><TableFieldEditor value={v.name} setValue={w => {
+                                            apiClient.protected.inventory_item.data.$patch(apiWithHeaders({body: {id: v.id, name: v.name}})).then(res => {
+                                                reloadList()
+                                            })
+                                        }} /></Table.Cell>
+                                        <Table.Cell><TableFieldEditor value={v.description} setValue={w => {
+                                            apiClient.protected.inventory_item.data.$patch(apiWithHeaders({body: {id: v.id, description: w}})).then(res => {
+                                                reloadList()
+                                            })
+                                        }} /></Table.Cell>
+                                        <Table.Cell collapsing><TableFieldEditor currency={true} value={`$${v.cost.toFixed(2)}`} setValue={w => {
+                                            apiClient.protected.inventory_item.data.$patch(apiWithHeaders({body: {id: v.id, cost: _.toNumber(w.replace('$', ''))}})).then(res => {
+                                                reloadList()
+                                            })
+                                        }} /></Table.Cell>
+                                        <Table.Cell collapsing style={{justifyContent: 'center'}}>
+                                            <Button
+                                                as={'a'}
+                                                href={`/create-inventory-item/${v.id}`}
+                                                target={'_blank'}
+                                                rel={'noopener noreferrer'}
+                                                primary
+                                                fluid={true}
+                                                icon={'qrcode'}
+                                                onClick={() => {
+
+                                                }} />
+                                        </Table.Cell>
                                     </Table.Row>
                                 )))
 
@@ -167,30 +207,32 @@ const Inventory: NextPage = () => {
             </Modal>
             <Grid centered columns={1} padded={'vertically'}>
                 <Grid.Row>
-                    <Search
-                        fluid
-                        loading={searchLoading}
-                        
-                        position={'center'}
-                        size={'huge'}
+                    <Input
+                        icon={'search'}
+                        placeholder={'Search...'}
+                        onChange={e => {
+                            e.preventDefault()
+                            setSearch(e.target.value)
+                        }}
+                        value={search}
                     />
                 </Grid.Row>
                 <Grid.Row>
                     <Table celled striped>
                         <Table.Header>
                             <Table.Row>
-                                <Table.HeaderCell colSpan={'4'}>
+                                <Table.HeaderCell colSpan={'5'}>
                                     Inventory Items
                                 </Table.HeaderCell>
                                 <Table.HeaderCell textAlign={'center'}>
                                     <Button
-                                            onClick={() => {
-                                                setAddItemModalShown(true)
-                                            }}
-                                    >
-                                        <Icon
-                                            name={'add'} />
-                                    </Button>
+                                        positive
+                                        fluid
+                                        icon={'add'}
+                                        onClick={() => {
+                                            setAddItemModalShown(true)
+                                        }}
+                                    />
                                 </Table.HeaderCell>
                             </Table.Row>
                             <Table.Row textAlign={'center'}>
@@ -198,7 +240,7 @@ const Inventory: NextPage = () => {
                                     <Icon name={'picture'}/>
                                 </Table.HeaderCell>
                                 <Table.HeaderCell>
-                                    ID #
+                                    <Icon name={'id badge'} />
                                 </Table.HeaderCell>
                                 <Table.HeaderCell>
                                     Name
@@ -208,6 +250,9 @@ const Inventory: NextPage = () => {
                                 </Table.HeaderCell>
                                 <Table.HeaderCell>
                                     <Icon name={'money'}/>
+                                </Table.HeaderCell>
+                                <Table.HeaderCell collapsing>
+                                    <Icon name={'qrcode'}/>
                                 </Table.HeaderCell>
                             </Table.Row>
                         </Table.Header>

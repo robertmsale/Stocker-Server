@@ -8,6 +8,7 @@ import jwt from '$/service/jwt'
 
 export default defineController((fastify) => ({
     post: async (req) => {
+        console.log(req)
         const usr = await prisma.user.findFirst({ where: { username: req.body.username }})
         if (_.isNull(usr)) return {status: 404}
         const pass_cmp = await encryption.compare(usr.id, req.body.password)

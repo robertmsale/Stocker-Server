@@ -5,45 +5,41 @@ import prisma from '$/service/prisma'
 
 export default defineController(() => ({
     get: async ({query}) => {
-        const selectsafe: [keyof InventoryItem] = _.isUndefined(query) || _.isUndefined(query.select) ? [] as unknown as [keyof InventoryItem] : query.select
-        const select = _.isEmpty(selectsafe) ? {} : _.zipObject(selectsafe, _.repeat(" ", selectsafe.length).split(' ').map(() => true))
-        const where = _.omitBy(query, (v, k) => k == 'select' || k == 'limit' || _.isUndefined(v))
-        const take = _.isUndefined(query) || _.isUndefined(query.limit) ? 1000000 : query.limit
-        const items = await prisma.inventoryItem.findMany(
-            _.merge(select, take, where) as never
-        )
+        console.log(query)
+        const items = await prisma.inventoryItem.findMany({
+            where: { id: _.toNumber(query?.id) },
+        })
         return { status: 200, body: items}
     },
-    post: async ({body}) => {
-
+    post: async ({body, user}) => {
         const rv = await prisma.inventoryItem.create({data: body})
         const data = await prisma.inventoryItemData.findFirst({where: {id: rv.dataId}})
         await prisma.events.create({data: {
-                description: `{username} scanned in a new item: ${data?.name ?? ""}`,
+                description: `${user.username} scanned in a new item: ${data?.name ?? ""}`,
                 time: new Date(),
                 userid: 0
             }})
         return {status: 200, body: rv}
     },
-    patch: async ({body}) => {
+    patch: async ({body, user}) => {
         const rv = await prisma.inventoryItem.update({
             data: _.omit(body, 'id'),
             where: { id: body.id }
         })
         const data = await prisma.inventoryItemData.findFirst({where: {id: rv.dataId}})
         await prisma.events.create({data: {
-                description: `{username} updated an item's information: ${data?.name ?? ""}`,
+                description: `${user.username} updated an item's information: ${data?.name ?? ""}`,
                 time: new Date(),
                 userid: 0
             }})
         return {status: 200, body: rv}
     },
-    delete: async ({body}) => {
+    delete: async ({body, user}) => {
         for (let id of body) {
             const rv = await prisma.inventoryItem.findFirst({where: {id}})
             const data = await prisma.inventoryItemData.findFirst({where: {id: rv?.dataId ?? 0}})
             await prisma.events.create({data: {
-                    description: `{username} scanned an item out of stock: ${data?.name ?? ""}`,
+                    description: `${user.username} scanned an item out of stock: ${data?.name ?? ""}`,
                     time: new Date(),
                     userid: 0
                 }})
