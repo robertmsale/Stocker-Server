@@ -4,6 +4,12 @@ import _ from 'lodash'
 import encryption from "$/service/encryption";
 
 export default defineController(() => ({
+    get: async ({query}) => {
+        let where = {id: _.toNumber(query.id)}
+        console.log(where)
+        let rv = await prisma.user.findFirst({where, include: {roles: true}})
+        return {status: 200, body: _.omit(rv, 'password')}
+    },
     post: async ({body}) => {
         console.log(body)
         const newuser = await prisma.user.create({data: {

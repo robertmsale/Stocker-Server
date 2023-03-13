@@ -362,6 +362,12 @@ function defineController7(methods, cb) {
 // api/protected/admin/user/controller.ts
 var import_lodash4 = __toESM(require("lodash"));
 var controller_default7 = defineController7(() => ({
+  get: async ({ query }) => {
+    let where = { id: import_lodash4.default.toNumber(query.id) };
+    console.log(where);
+    let rv = await prisma_default.user.findFirst({ where, include: { roles: true } });
+    return { status: 200, body: import_lodash4.default.omit(rv, "password") };
+  },
   post: async ({ body }) => {
     console.log(body);
     const newuser = await prisma_default.user.create({ data: {
@@ -479,11 +485,8 @@ function defineController11(methods, cb) {
 // api/protected/inventory-item/controller.ts
 var import_lodash7 = __toESM(require("lodash"));
 var controller_default11 = defineController11(() => ({
-  get: async ({ query }) => {
-    console.log(query);
-    const items = await prisma_default.inventoryItem.findMany({
-      where: { id: import_lodash7.default.toNumber(query == null ? void 0 : query.id) }
-    });
+  get: async ({ query, body }) => {
+    const items = await prisma_default.inventoryItem.findMany(body);
     return { status: 200, body: items };
   },
   post: async ({ body, user }) => {
@@ -866,6 +869,15 @@ var server_default = (fastify, options = {}) => {
       preHandler: hooks0.preHandler
     },
     asyncMethodToHandler(controller5.post)
+  );
+  fastify.get(
+    `${basePath}/protected/admin/user`,
+    {
+      onRequest: hooks1.onRequest,
+      preValidation: parseNumberTypeQueryParams([["id", false, false]]),
+      preHandler: hooks0.preHandler
+    },
+    asyncMethodToHandler(controller6.get)
   );
   fastify.post(
     `${basePath}/protected/admin/user`,

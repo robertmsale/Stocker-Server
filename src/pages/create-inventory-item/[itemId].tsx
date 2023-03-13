@@ -25,14 +25,14 @@ import {DirContext} from "~/pages/_app";
 const InventoryItemGenPage = () => {
     const router = useRouter()
     const {dirs} = useContext(DirContext)
-    const { itemId } = router.query
+    const { itemId, warehouseId, userId } = router.query
     const [itemData, setItemData] = useState<InventoryItemData | undefined>(undefined)
     const [dimmer, setDimmer] = useState(true)
-    const [radioValue, setRadioValue] = useState<'warehouse' | 'user'>('warehouse')
+    const [radioValue, setRadioValue] = useState<'warehouse' | 'user'>(_.isUndefined(userId) ? 'warehouse' : 'user')
     const [warehouses, setWarehouses] = useState<Warehouse[]>([])
     const [users, setUsers] = useState<Except<User, 'password'>[]>([])
-    const [selectedWarehouse, setSelectedWarehouse] = useState<number>(-1)
-    const [selectedUser, setSelectedUser] = useState<number>(-1)
+    const [selectedWarehouse, setSelectedWarehouse] = useState<number>(_.isUndefined(warehouseId) ? -1 :_.toNumber(warehouseId))
+    const [selectedUser, setSelectedUser] = useState<number>(_.isUndefined(userId) ? -1 : _.toNumber(userId))
     const [showNameInQR, setShowNameInQR] = useState(false)
     const [QRValue, setQRValue] = useState("placeholder")
 

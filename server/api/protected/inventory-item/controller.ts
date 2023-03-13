@@ -4,11 +4,9 @@ import _ from 'lodash'
 import prisma from '$/service/prisma'
 
 export default defineController(() => ({
-    get: async ({query}) => {
-        console.log(query)
-        const items = await prisma.inventoryItem.findMany({
-            where: { id: _.toNumber(query?.id) },
-        })
+    get: async ({query, body}) => {
+        // console.log(query)
+        const items = await prisma.inventoryItem.findMany(body)
         return { status: 200, body: items}
     },
     post: async ({body, user}) => {

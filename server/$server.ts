@@ -272,6 +272,16 @@ export default (fastify: FastifyInstance, options: FrourioOptions = {}) => {
     asyncMethodToHandler(controller5.post)
   )
 
+  fastify.get(
+    `${basePath}/protected/admin/user`,
+    {
+      onRequest: hooks1.onRequest,
+      preValidation: parseNumberTypeQueryParams([['id', false, false]]),
+      preHandler: hooks0.preHandler
+    } as RouteShorthandOptions,
+    asyncMethodToHandler(controller6.get)
+  )
+
   fastify.post(
     `${basePath}/protected/admin/user`,
     {

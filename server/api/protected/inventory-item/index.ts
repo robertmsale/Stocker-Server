@@ -1,15 +1,17 @@
 import {Except, Merge, SetRequired} from 'type-fest'
-import {InventoryItem, InventoryItemData} from '$prisma/client'
+import {InventoryItem, Prisma} from '$prisma/client'
+
 
 export type Methods = {
     get: {
         reqHeader: {
           authorization: string
         }
-        query?: Merge<Partial<InventoryItem>, {
+        query: Merge<Partial<InventoryItem>, {
             limit?: number,
             select?: [keyof InventoryItem]
         }>
+        reqBody?: Prisma.InventoryItemFindManyArgs
         resBody: InventoryItem[]
     }
 

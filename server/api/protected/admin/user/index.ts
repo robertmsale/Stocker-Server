@@ -3,6 +3,13 @@ import {User} from "$prisma/client";
 import {UserRole} from "@prisma/client";
 
 export type Methods = {
+    get: {
+        reqHeader: {
+            authorization: string
+        }
+        query: {id: number}
+        resBody: Merge<Except<User, 'password'>, {roles: UserRole[]}>
+    }
     post: {
         reqHeader: {
           authorization: string

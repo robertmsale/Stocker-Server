@@ -24,6 +24,7 @@ import _ from 'lodash'
 import {apiWithHeaders} from "~/utils/apiConfig";
 import {DirContext} from "~/pages/_app";
 import {UserRole} from "@prisma/client";
+import TableFieldEditor from "~/components/TableFieldEditor";
 
 
 type UserEditModalProps = {
@@ -133,6 +134,9 @@ const UserPage: NextPage = () => {
     const {dirs} = useContext(DirContext)
 
     const refreshUsers = () => {
+        setUsername('')
+        setPassword('')
+        setEmail('')
         apiClient.protected.user.$get(apiWithHeaders({query: {}})).then(res => {
             setUsers(res)
             console.log(res)
@@ -219,20 +223,19 @@ const UserPage: NextPage = () => {
             </Modal.Actions>
         </Modal>
         <Container fluid style={{padding: '1rem'}}>
-            <div style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-            }}>
-                <Header>
-                    Users Page
-                </Header>
-                <Button primary icon={'plus'} onClick={(e)=> {
-                    e.preventDefault()
-                    setAddUserShown(true)
-                }}/>
-            </div>
             <Table celled>
                 <Table.Header>
+                    <Table.Row>
+                        <Table.HeaderCell colSpan={5}>
+                            Users
+                        </Table.HeaderCell>
+                        <Table.HeaderCell>
+                            <Button positive icon={'plus'} onClick={(e)=> {
+                                e.preventDefault()
+                                setAddUserShown(true)
+                            }}/>
+                        </Table.HeaderCell>
+                    </Table.Row>
                     <Table.Row>
                         <Table.HeaderCell collapsing><Icon name={'picture'}/></Table.HeaderCell>
                         <Table.HeaderCell collapsing><Icon name={'id card'}/></Table.HeaderCell>
@@ -247,21 +250,64 @@ const UserPage: NextPage = () => {
                         <Table.Row key={u.id}>
                             <Table.Cell><img width={'32'} height={'32'} src={u.imageURL !== '' ? `${dirs.baseURL}${dirs.profileImages}${u.imageURL}` : `${dirs.baseURL}${dirs.dummy}`} /></Table.Cell>
                             <Table.Cell>{u.id}</Table.Cell>
-                            <Table.Cell>{u.username}</Table.Cell>
-                            <Table.Cell>{u.email}</Table.Cell>
+                            <Table.Cell><TableFieldEditor
+                                value={u.username}
+                                setValue={(value) => {
+                                    apiClient.protected.admin.user.$patch(apiWithHeaders({body: {id: u.id, username: value}})).then(res => {
+                                        refreshUsers()
+                                    })
+                                }}
+                            /></Table.Cell>
+                            <Table.Cell><TableFieldEditor
+                                value={u.email}
+                                setValue={(value) => {
+                                    apiClient.protected.admin.user.$patch(apiWithHeaders({body: {id: u.id, email: value}})).then(res => {
+                                        refreshUsers()
+                                    })
+                                }}
+                            /></Table.Cell>
                             <Table.Cell>{u.active ? 'Yes' : 'No'}</Table.Cell>
                             <Table.Cell>
                                 <div style={{display: "flex", flexDirection: 'row'}}>
-                                    <Button icon primary onClick={() => {
-                                        setUserToEdit(_.merge(u, {password: ''}) as User)
-                                        setUserToEditRoles(roles)
-                                        setUserEditModalShown(true)
-                                    }}>
-                                        <Icon name='edit'/>
-                                    </Button>
-                                    <Button icon negative>
-                                        <Icon name='trash'/>
-                                    </Button>
+                                    <Button
+                                        as={'a'}
+                                        icon={'forward'}
+                                        href={'/users/' + u.id}
+                                        primary
+                                    />
+                                    <Button
+                                        icon={u.active ? 'ban' : 'check'}
+                                        negative={u.active}
+                                        positive={!u.active}
+                                        disabled={u.id === 1}
+                                        onClick={() => {
+                                            if (u.active) {
+                                                const confirmation = window.confirm("Are you sure you want to deactivate this user?")
+                                                if (confirmation) {
+                                                    apiClient.protected.admin.user.$patch(apiWithHeaders({
+                                                        body: {
+                                                            id: u.id,
+                                                            active: false
+                                                        }
+                                                    })).then(res => {
+                                                        refreshUsers()
+                                                    })
+                                                }
+                                            } else {
+                                                const confirmation = window.confirm("Are you sure you want to activate this user?")
+                                                if (confirmation) {
+                                                    apiClient.protected.admin.user.$patch(apiWithHeaders({
+                                                        body: {
+                                                            id: u.id,
+                                                            active: true
+                                                        }
+                                                    })).then(res => {
+                                                        refreshUsers()
+                                                    })
+                                                }
+                                            }
+                                        }}
+                                    />
                                 </div>
                             </Table.Cell>
                         </Table.Row>

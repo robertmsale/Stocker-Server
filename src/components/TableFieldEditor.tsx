@@ -43,6 +43,7 @@ const TableFieldEditor = (props: TableFieldEditorProps) => {
                 value={value}
                 onKeyDown={keyDown}
                 onChange={change}
+                fluid
             />
         )
     }
