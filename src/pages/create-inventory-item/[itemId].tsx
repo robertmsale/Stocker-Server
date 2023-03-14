@@ -21,6 +21,7 @@ import {apiClient} from "~/utils/apiClient";
 import {apiWithHeaders} from "~/utils/apiConfig";
 import {Except, Merge} from "type-fest";
 import {DirContext} from "~/pages/_app";
+import Link from "next/link";
 
 const InventoryItemGenPage = () => {
     const router = useRouter()
@@ -80,7 +81,7 @@ const InventoryItemGenPage = () => {
                     <Grid.Column>
                         <Button
                             className={'noPrint'}
-                            as={'a'}
+                            as={Link}
                             disabled={QRValue === 'placeholder'}
                             href={QRValue}>Go to item page</Button>
                     </Grid.Column>

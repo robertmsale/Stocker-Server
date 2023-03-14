@@ -11,6 +11,7 @@ import TableFieldEditor from "~/components/TableFieldEditor";
 import {UserRole, Prisma} from "$prisma/client";
 import warehouses from "~/pages/warehouses";
 import {Warehouse} from "@prisma/client";
+import Link from "next/link";
 
 const UserSpecificPage = () => {
     const {dirs} = useContext(DirContext)
@@ -230,7 +231,7 @@ const UserSpecificPage = () => {
                                                 <Button
                                                     icon={'plus'}
                                                     positive
-                                                    as={'a'}
+                                                    as={Link}
                                                     href={`/create-inventory-item/${item.id}?userId=${user?.id}`}
                                                     />
                                             </Table.Cell>
@@ -281,7 +282,7 @@ const UserSpecificPage = () => {
                                                 <Table.Cell collapsing>
                                                     <Button
                                                         icon={'qrcode'}
-                                                        as={'a'}
+                                                        as={Link}
                                                         primary
                                                         href={`/view-inventory-item/${v.id}`}
                                                         />

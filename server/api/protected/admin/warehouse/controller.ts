@@ -11,16 +11,37 @@ export default defineController(() => ({
         if (_.isNull(rv)) return {status: 404}
         return {status: 200, body: [rv]}
     },
-    post: async ({body}) => {
-        const rv = await prisma.warehouse.create({data: body})
+    post: async ({body, user}) => {
+        const rv = await prisma.warehouse.create({data: body}).then(res => {
+            prisma.events.create({data: {
+                description: `${user.username} created a new warehouse: ${res.name}`,
+                    time: new Date(),
+                    userid: user.id
+                }})
+            return res
+        })
         return {status: 200, body: rv}
     },
-    patch: async ({body}) => {
-        const rv = await prisma.warehouse.update({where: {id: body.id}, data: body})
+    patch: async ({body, user}) => {
+        const rv = await prisma.warehouse.update({where: {id: body.id}, data: body}).then(res => {
+            prisma.events.create({data: {
+                description: `${user.username} updated warehouse info: ${res.name}`,
+                    time: new Date(),
+                    userid: user.id
+                }})
+            return res
+        })
         return {status: 200, body: rv}
     },
-    delete: async ({query}) => {
-        await prisma.warehouse.delete({where: {id: query.id}})
+    delete: async ({query, user}) => {
+        await prisma.warehouse.delete({where: {id: query.id}}).then(res => {
+            prisma.events.create({data: {
+                description: `${user.username} deleted warehouse: ${res.name}`,
+                    time: new Date(),
+                    userid: user.id
+                }})
+            return res
+        })
         return {status: 200}
     }
 }))

@@ -23,6 +23,7 @@ import _ from 'lodash'
 import {apiWithHeaders} from "~/utils/apiConfig";
 import {Warehouse} from "@prisma/client";
 import TableFieldEditor from "~/components/TableFieldEditor";
+import Link from "next/link";
 
 const WarehousesPage: NextPage = () => {
     const [warehouses, setWarehouses] = useState([] as Warehouse[])
@@ -125,7 +126,7 @@ const WarehousesPage: NextPage = () => {
                             <Table.Cell>
                                 <div style={{display: 'flex', flexDirection: 'row'}}>
                                     <Button
-                                        as={'a'}
+                                        as={Link}
                                         href={`/warehouses/${v.id}`}
                                         primary
                                         icon={'forward'}/>

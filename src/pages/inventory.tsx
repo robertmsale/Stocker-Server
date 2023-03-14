@@ -23,6 +23,7 @@ import _ from 'lodash'
 import {apiConfig, apiWithHeaders} from "~/utils/apiConfig";
 import {DirContext} from "~/pages/_app";
 import TableFieldEditor from "~/components/TableFieldEditor";
+import Link from "next/link";
 
 const Inventory: NextPage = () => {
     const {dirs} = useContext(DirContext)
@@ -94,7 +95,7 @@ const Inventory: NextPage = () => {
                                         }} /></Table.Cell>
                                         <Table.Cell collapsing style={{justifyContent: 'center'}}>
                                             <Button
-                                                as={'a'}
+                                                as={Link}
                                                 href={`/create-inventory-item/${v.id}`}
                                                 target={'_blank'}
                                                 rel={'noopener noreferrer'}

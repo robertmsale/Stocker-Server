@@ -21,7 +21,7 @@ export default defineController(() => ({
         if (!fs.exists(relpath)) return {status: 200, body: defaultImagePath}
         return { status: 200, body: genImagePath(idata.imageURL)}
     },
-    post: async ({body, query}) => {
+    post: async ({body, query, user}) => {
         const filename = `${uuid()}${path.extname(body.icon.filename)}`
         const filepath = `${API_UPLOAD_DIR}/item-images/${filename}`
         jimp.read(await body.icon.toBuffer()).then(img => {
@@ -30,7 +30,12 @@ export default defineController(() => ({
         })
 
         if (!_.isUndefined(query) && !_.isUndefined(query.id)) {
-            await prisma.inventoryItemData.update({where: {id: query.id}, data: {imageURL: filename}})
+            let item = await prisma.inventoryItemData.update({where: {id: query.id}, data: {imageURL: filename}})
+            prisma.events.create({data: {
+                    description: `User ${user.username} changed item image for ${item.name}`,
+                    time: new Date(),
+                    userid: user.id,
+                }})
         }
         return {status: 200, body: genImagePath(path.basename(filename))}
     }

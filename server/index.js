@@ -408,9 +408,9 @@ function defineController8(methods, cb) {
 
 // api/protected/admin/user/img/controller.ts
 var import_lodash5 = __toESM(require("lodash"));
-var import_fs_jetpack = __toESM(require("fs-jetpack"));
 var import_path = __toESM(require("path"));
 var import_uuid = require("uuid");
+var import_jimp = __toESM(require("jimp"));
 var controller_default8 = defineController8(() => ({
   get: async ({ query }) => {
     let urlusr = await prisma_default.user.findFirst({ where: { id: query.id }, select: { imageURL: true } });
@@ -418,13 +418,21 @@ var controller_default8 = defineController8(() => ({
       return { status: 404 };
     return { status: 200, body: urlusr.imageURL };
   },
-  post: async ({ query, body }) => {
+  post: async ({ query, body, user }) => {
     let usr = await prisma_default.user.findFirst({ where: { id: query.id } });
     if (import_lodash5.default.isNull(usr))
       return { status: 404 };
     let imgname = `${(0, import_uuid.v1)()}${import_path.default.extname(body.icon.filename)}`;
     let imgpath = import_path.default.resolve(API_UPLOAD_DIR, "profile-images", imgname);
-    await import_fs_jetpack.default.writeAsync(imgpath, await body.icon.toBuffer());
+    import_jimp.default.read(await body.icon.toBuffer()).then((img) => {
+      img.scaleToFit(128, 128);
+      img.writeAsync(imgpath);
+    });
+    prisma_default.events.create({ data: {
+      description: `User ${user.username} changed profile image for ${usr.username}`,
+      time: new Date(),
+      userid: user.id
+    } });
     await prisma_default.user.update({ where: { id: query.id }, data: { imageURL: imgname } });
     return { status: 200, body: imgname };
   }
@@ -448,16 +456,37 @@ var controller_default9 = defineController9(() => ({
       return { status: 404 };
     return { status: 200, body: [rv] };
   },
-  post: async ({ body }) => {
-    const rv = await prisma_default.warehouse.create({ data: body });
+  post: async ({ body, user }) => {
+    const rv = await prisma_default.warehouse.create({ data: body }).then((res) => {
+      prisma_default.events.create({ data: {
+        description: `${user.username} created a new warehouse: ${res.name}`,
+        time: new Date(),
+        userid: user.id
+      } });
+      return res;
+    });
     return { status: 200, body: rv };
   },
-  patch: async ({ body }) => {
-    const rv = await prisma_default.warehouse.update({ where: { id: body.id }, data: body });
+  patch: async ({ body, user }) => {
+    const rv = await prisma_default.warehouse.update({ where: { id: body.id }, data: body }).then((res) => {
+      prisma_default.events.create({ data: {
+        description: `${user.username} updated warehouse info: ${res.name}`,
+        time: new Date(),
+        userid: user.id
+      } });
+      return res;
+    });
     return { status: 200, body: rv };
   },
-  delete: async ({ query }) => {
-    await prisma_default.warehouse.delete({ where: { id: query.id } });
+  delete: async ({ query, user }) => {
+    await prisma_default.warehouse.delete({ where: { id: query.id } }).then((res) => {
+      prisma_default.events.create({ data: {
+        description: `${user.username} deleted warehouse: ${res.name}`,
+        time: new Date(),
+        userid: user.id
+      } });
+      return res;
+    });
     return { status: 200 };
   }
 }));
@@ -586,11 +615,11 @@ function defineController13(methods, cb) {
 }
 
 // api/protected/inventory-item/data/image/controller.ts
-var import_fs_jetpack2 = __toESM(require("fs-jetpack"));
+var import_fs_jetpack = __toESM(require("fs-jetpack"));
 var import_lodash9 = __toESM(require("lodash"));
 var import_path2 = __toESM(require("path"));
 var import_uuid2 = require("uuid");
-var import_jimp = __toESM(require("jimp"));
+var import_jimp2 = __toESM(require("jimp"));
 var defaultImagePath = `${API_ORIGIN}/static/icons/dummy.svg`;
 var genImagePath = (img) => `${API_ORIGIN}/upload/item-images/${img}`;
 var relImagePath = (img) => import_path2.default.resolve(API_UPLOAD_DIR, "item-images", img);
@@ -602,19 +631,24 @@ var controller_default13 = defineController13(() => ({
     if (import_lodash9.default.isNull(idata))
       return { status: 200, body: defaultImagePath };
     const relpath = relImagePath(idata.imageURL);
-    if (!import_fs_jetpack2.default.exists(relpath))
+    if (!import_fs_jetpack.default.exists(relpath))
       return { status: 200, body: defaultImagePath };
     return { status: 200, body: genImagePath(idata.imageURL) };
   },
-  post: async ({ body, query }) => {
+  post: async ({ body, query, user }) => {
     const filename = `${(0, import_uuid2.v1)()}${import_path2.default.extname(body.icon.filename)}`;
     const filepath = `${API_UPLOAD_DIR}/item-images/${filename}`;
-    import_jimp.default.read(await body.icon.toBuffer()).then((img) => {
+    import_jimp2.default.read(await body.icon.toBuffer()).then((img) => {
       img.scaleToFit(128, 128);
       img.writeAsync(filepath);
     });
     if (!import_lodash9.default.isUndefined(query) && !import_lodash9.default.isUndefined(query.id)) {
-      await prisma_default.inventoryItemData.update({ where: { id: query.id }, data: { imageURL: filename } });
+      let item = await prisma_default.inventoryItemData.update({ where: { id: query.id }, data: { imageURL: filename } });
+      prisma_default.events.create({ data: {
+        description: `User ${user.username} changed item image for ${item.name}`,
+        time: new Date(),
+        userid: user.id
+      } });
     }
     return { status: 200, body: genImagePath(import_path2.default.basename(filename)) };
   }
@@ -682,7 +716,7 @@ var dirs_default = dirs;
 var import_lodash12 = __toESM(require("lodash"));
 var import_uuid3 = require("uuid");
 var import_path3 = __toESM(require("path"));
-var import_fs_jetpack3 = __toESM(require("fs-jetpack"));
+var import_fs_jetpack2 = __toESM(require("fs-jetpack"));
 var controller_default16 = defineController16(() => ({
   get: async (req) => {
     if (import_lodash12.default.isUndefined(req.query)) {
@@ -697,7 +731,7 @@ var controller_default16 = defineController16(() => ({
     const { icon } = req.body;
     const filename = `${(0, import_uuid3.v1)()}${import_path3.default.extname(icon.filename)}`;
     const filepath = `${API_UPLOAD_DIR}/${filename}`;
-    await import_fs_jetpack3.default.writeAsync(filepath, await icon.toBuffer());
+    await import_fs_jetpack2.default.writeAsync(filepath, await icon.toBuffer());
     await prisma_default.user.update({ where: { id: req.user.id }, data: { imageURL: filepath } });
     return { status: 200, body: filename };
   }

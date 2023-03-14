@@ -7,6 +7,7 @@ import {apiClient} from "~/utils/apiClient";
 import {Except} from "type-fest";
 import _ from 'lodash'
 import {DirContext} from "../_app";
+import Link from "next/link";
 
 const SpecificWarehouse = () => {
     const {dirs} = useContext(DirContext)
@@ -67,7 +68,7 @@ const SpecificWarehouse = () => {
                                 <Button
                                     icon={'plus'}
                                     positive
-                                    as={'a'}
+                                    as={Link}
                                     href={`/create-inventory-item/${iData.id}?warehouseId=${id}`}
                                     />
                             </Table.Cell>
@@ -120,7 +121,7 @@ const SpecificWarehouse = () => {
                                     <Button
                                         icon={'qrcode'}
                                         primary
-                                        as={'a'}
+                                        as={Link}
                                         href={`/view-inventory-item/${item.id}`}
                                     />
                                 </Table.Cell>

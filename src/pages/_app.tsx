@@ -27,11 +27,14 @@ import {apiClient} from "~/utils/apiClient";
 import {Dirs} from "~/utils/types";
 import {apiWithHeaders} from "~/utils/apiConfig";
 import {Except} from "type-fest";
+import {useRouter} from "next/router";
 
 type Usernp = Except<User, 'password'>
 export const UserContext = createContext({} as { user: Usernp | undefined, setUser: (user: Usernp | undefined) => void })
 export const DirContext = createContext({} as { dirs: Dirs, setDirs: (dir: Dirs) => void })
 const MyApp = ({Component, pageProps}: AppProps) => {
+    const router = useRouter()
+
     const [sidebarShown, setSidebarShown] = useState(false)
     const [user, setUser] = useState<Usernp | undefined>(undefined)
 
@@ -95,7 +98,10 @@ const MyApp = ({Component, pageProps}: AppProps) => {
         <Menu.Item
             as={'a'}
             key={v.href}
-            onClick={() => setSidebarShown(false)}>
+            onClick={() => {
+                router.push(v.href)
+                setSidebarShown(false)
+            }}>
             <Header size={'medium'}>
                 <Link href={v.href}>{v.text}</Link>
             </Header>

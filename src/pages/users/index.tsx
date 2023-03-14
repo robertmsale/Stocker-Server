@@ -25,6 +25,7 @@ import {apiWithHeaders} from "~/utils/apiConfig";
 import {DirContext} from "~/pages/_app";
 import {UserRole} from "@prisma/client";
 import TableFieldEditor from "~/components/TableFieldEditor";
+import Link from "next/link";
 
 
 type UserEditModalProps = {
@@ -270,7 +271,7 @@ const UserPage: NextPage = () => {
                             <Table.Cell>
                                 <div style={{display: "flex", flexDirection: 'row'}}>
                                     <Button
-                                        as={'a'}
+                                        as={Link}
                                         icon={'forward'}
                                         href={'/users/' + u.id}
                                         primary
