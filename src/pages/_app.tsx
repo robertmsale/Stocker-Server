@@ -28,6 +28,7 @@ import {Dirs} from "~/utils/types";
 import {apiWithHeaders} from "~/utils/apiConfig";
 import {Except} from "type-fest";
 import {useRouter} from "next/router";
+import {redirect} from 'next/navigation'
 
 type Usernp = Except<User, 'password'>
 export const UserContext = createContext({} as { user: Usernp | undefined, setUser: (user: Usernp | undefined) => void })
@@ -94,19 +95,18 @@ const MyApp = ({Component, pageProps}: AppProps) => {
             href: '/reports',
             text: 'Reports'
         },
-    ].map(v => (
-        <Menu.Item
-            as={'a'}
-            key={v.href}
-            onClick={() => {
-                router.push(v.href)
-                setSidebarShown(false)
-            }}>
-            <Header size={'medium'}>
-                <Link href={v.href}>{v.text}</Link>
-            </Header>
-        </Menu.Item>
-    ))
+    ]
+
+    const StandardUserButtons = [
+        {
+            href: '/',
+            text: 'Dashboard'
+        },
+        {
+            href: '/scan',
+            text: 'Scan Item'
+        },
+    ]
 
     const MainComponent = () => {
         if (!_.isUndefined(user)) {
@@ -141,7 +141,19 @@ const MyApp = ({Component, pageProps}: AppProps) => {
                 >
                     <Menu vertical inverted fluid style={{padding: '1rem'}}>
                         <Header inverted>Main Menu</Header>
-                        {SidebarButtons}
+                        {(_.get(user, 'id') === 1 ? SidebarButtons : StandardUserButtons).map(v => (
+                            <Menu.Item
+                                as={'a'}
+                                key={v.href}
+                                onClick={() => {
+                                    router.push(v.href)
+                                    setSidebarShown(false)
+                                }}>
+                                <Header size={'medium'}>
+                                    <Link href={v.href}>{v.text}</Link>
+                                </Header>
+                            </Menu.Item>
+                        ))}
                     </Menu>
                 </Sidebar>
                 <Sidebar.Pusher>

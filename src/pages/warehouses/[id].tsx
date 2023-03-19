@@ -1,5 +1,5 @@
 import {useRouter} from "next/router";
-import {Button, Container, Dropdown, Icon, Image, Table} from "semantic-ui-react";
+import {Button, Container, Dropdown, Icon, Image, Input, Table} from "semantic-ui-react";
 import {InventoryItem, InventoryItemData, User, Warehouse} from "$prisma/client";
 import {useContext, useEffect, useState} from "react";
 import {apiWithHeaders} from "~/utils/apiConfig";
@@ -19,6 +19,7 @@ const SpecificWarehouse = () => {
     const [warehouses, setWarehouses] = useState<Warehouse[]>([])
     const [users, setUsers] = useState<Except<User, 'password'>[]>([])
     const [warehouseInventory, setWarehouseInventory] = useState<InventoryItem[]>([])
+    const [search, setSearch] = useState("")
 
     const itemImage = (item: InventoryItemData) => item.imageURL === '' ?
         `${dirs.baseURL}${dirs.dummy}` :
@@ -50,8 +51,29 @@ const SpecificWarehouse = () => {
         refreshPage()
     }, [])
 
+    const tableFilter = (v: InventoryItemData) => {
+        try {
+            return search === '' ||
+                v.id.toString(10) === search ||
+                _.get(v.cost.toString(10).match(search), 'length', 0) > 0 ||
+                _.get(_.toLower(v.description).match(_.toLower(search)), 'length', 0) > 0 ||
+                _.get(_.toLower(v.name).match(_.toLower(search)), 'length', 0) > 0
+        } catch (e) {
+            return true
+        }
+    }
+
     return (
         <Container style={{paddingTop: '1rem'}}>
+            <Input
+                icon={'search'}
+                placeholder={'Search...'}
+                onChange={e => {
+                    e.preventDefault()
+                    setSearch(e.target.value)
+                }}
+                value={search}
+                />
             <Table celled>
                 <Table.Header>
                     <Table.Row>
@@ -59,12 +81,12 @@ const SpecificWarehouse = () => {
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                    {itemData.map(iData => (<>
+                    {itemData.filter(tableFilter).map(iData => (<>
                         <Table.Row>
-                            <Table.Cell collapsing><Image avatar src={itemImage(iData)} /></Table.Cell>
-                            <Table.Cell collapsing>{iData.name}</Table.Cell>
+                            <Table.Cell><Image avatar src={itemImage(iData)} /></Table.Cell>
+                            <Table.Cell>{iData.name}</Table.Cell>
                             <Table.Cell>{iData.description}</Table.Cell>
-                            <Table.Cell collapsing>
+                            <Table.Cell>
                                 <Button
                                     icon={'plus'}
                                     positive

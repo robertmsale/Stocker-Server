@@ -11,8 +11,6 @@ import {Container, Feed, Header, Icon, Segment} from "semantic-ui-react";
 import {UserContext} from "~/pages/_app";
 import {apiConfig, apiWithHeaders} from "~/utils/apiConfig";
 
-
-
 const Home: NextPage = () => {
     const [events, setEvents] = useState([] as Events[])
     const {user} = useContext(UserContext)

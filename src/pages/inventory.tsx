@@ -55,8 +55,8 @@ const Inventory: NextPage = () => {
             return search === '' ||
                 v.id.toString(10) === search ||
                 _.get(v.cost.toString(10).match(search), 'length', 0) > 0 ||
-                _.get(v.description.match(search), 'length', 0) > 0 ||
-                _.get(v.name.match(search), 'length', 0) > 0
+                _.get(_.toLower(v.description).match(_.toLower(search)), 'length', 0) > 0 ||
+                _.get(_.toLower(v.name).match(_.toLower(search)), 'length', 0) > 0
         } catch (e) {
             return true
         }
@@ -78,8 +78,8 @@ const Inventory: NextPage = () => {
                                     >
                                         <Table.Cell collapsing><img src={`${dirs.baseURL}${v.imageURL === '' ? dirs.dummy : dirs.itemImages + v.imageURL}`} width={50} height={50}/></Table.Cell>
                                         <Table.Cell collapsing>{v.id}</Table.Cell>
-                                        <Table.Cell collapsing><TableFieldEditor value={v.name} setValue={w => {
-                                            apiClient.protected.inventory_item.data.$patch(apiWithHeaders({body: {id: v.id, name: v.name}})).then(res => {
+                                        <Table.Cell><TableFieldEditor value={v.name} setValue={w => {
+                                            apiClient.protected.inventory_item.data.$patch(apiWithHeaders({body: {id: v.id, name: w}})).then(res => {
                                                 reloadList()
                                             })
                                         }} /></Table.Cell>

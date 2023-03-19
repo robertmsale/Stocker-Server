@@ -30,6 +30,7 @@ const WarehousesPage: NextPage = () => {
     const [newWarehouseName, setNewWarehouseName] = useState('')
     const [newWarehouseAddress, setNewWarehouseAddress] = useState('')
     const [newWarehouseModalOpen, setNewWarehouseModalOpen] = useState(false)
+    const [search, setSearch] = useState("")
 
     const refreshPage = () => {
         apiClient.protected.admin.warehouse.$get(apiWithHeaders({query: {}})).then(res => {
@@ -87,6 +88,15 @@ const WarehousesPage: NextPage = () => {
                     >Create Warehouse</Button>
                 </Modal.Actions>
             </Modal>
+            <Input
+                icon={'search'}
+                placeholder={'Search...'}
+                onChange={e => {
+                    e.preventDefault()
+                    setSearch(e.target.value)
+                }}
+                value={search}
+                />
             <Table celled>
                 <Table.Header>
                     <Table.Row>
@@ -107,7 +117,13 @@ const WarehousesPage: NextPage = () => {
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                    {warehouses.map(v => (
+                    {warehouses
+                        .filter(v => {
+                            return v.id.toString(10) === search ||
+                                _.get(_.toLower(v.name).match(_.toLower(search)), 'length', 0) > 0 ||
+                                _.get(_.toLower(v.address).match(_.toLower(search)), 'length', 0) > 0
+                        })
+                        .map(v => (
                         <Table.Row key={v.id}>
                             <Table.Cell>{v.id}</Table.Cell>
                             <Table.Cell><TableFieldEditor value={v.name} setValue={(name) => {

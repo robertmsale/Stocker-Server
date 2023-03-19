@@ -10,7 +10,7 @@ import {
     Form,
     Grid,
     Header,
-    Image,
+    Image, Input,
     List,
     Radio,
     Segment,
@@ -36,6 +36,7 @@ const InventoryItemGenPage = () => {
     const [selectedUser, setSelectedUser] = useState<number>(_.isUndefined(userId) ? -1 : _.toNumber(userId))
     const [showNameInQR, setShowNameInQR] = useState(false)
     const [QRValue, setQRValue] = useState("placeholder")
+    const [search, setSearch] = useState("")
 
 
     useEffect(() => {
@@ -122,6 +123,19 @@ const InventoryItemGenPage = () => {
                                         </Grid.Column>
                                     </Grid.Row>
                                     <Grid.Row>
+                                        <Grid.Column>
+                                            <Input
+                                                icon={'search'}
+                                                placeholder={'Search...'}
+                                                onChange={e => {
+                                                    e.preventDefault()
+                                                    setSearch(e.target.value)
+                                                }}
+                                                value={search}
+                                                />
+                                        </Grid.Column>
+                                    </Grid.Row>
+                                    <Grid.Row>
                                         <Grid.Column width={16} textAlign={'left'}>
                                             <List
                                                 divided
@@ -129,7 +143,13 @@ const InventoryItemGenPage = () => {
                                                 verticalAlign={'middle'}>
                                                 {
                                                     radioValue === 'warehouse' ?
-                                                        warehouses.map(v => (
+                                                        warehouses
+                                                            .filter(v =>
+                                                                v.id.toString(10) === search ||
+                                                                _.get(_.toLower(v.name).match(_.toLower(search)), 'length', 0) > 0 ||
+                                                                _.get(_.toLower(v.address).match(_.toLower(search)), 'length', 0) > 0
+                                                            )
+                                                            .map(v => (
                                                             <List.Item
                                                                 key={v.id}
                                                                 active={selectedWarehouse === v.id}
@@ -139,7 +159,13 @@ const InventoryItemGenPage = () => {
                                                                     <List.Header as={'a'}>{v.name}</List.Header>
                                                                 </List.Content>
                                                             </List.Item>
-                                                        )) : users.map(v => (
+                                                        )) : users
+                                                            .filter(v =>
+                                                                v.id.toString(10) === search ||
+                                                                _.get(_.toLower(v.username).match(_.toLower(search)), 'length', 0) > 0 ||
+                                                                _.get(_.toLower(v.email).match(_.toLower(search)), 'length', 0) > 0
+                                                            )
+                                                            .map(v => (
                                                             <List.Item
                                                                 key={v.id}
                                                                 active={selectedUser === v.id}
@@ -192,6 +218,9 @@ const InventoryItemGenPage = () => {
                                 <Button
                                     primary
                                     disabled={dimmer}
+                                    onClick={() => {
+                                        window.print()
+                                    }}
                                 >
                                     Print QR Code
                                 </Button>

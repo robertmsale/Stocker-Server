@@ -31,6 +31,7 @@ const UserSpecificPage = () => {
 
     const [warehouses, setWarehouses] = useState<Warehouse[]>([])
     const [users, setUsers] = useState<Except<User, 'password'>[]>([])
+    const [search, setSearch] = useState("")
 
     const filteredItemData = () => {
         const dataIds = new Set<number>()
@@ -107,14 +108,20 @@ const UserSpecificPage = () => {
                                         <Table.Cell>Username</Table.Cell>
                                         <Table.Cell><Input
                                             value={username}
-                                            onChange={(e, {value}) => setUsername(value)}
+                                            onChange={(e, {value}) => {
+                                                setUsername(value)
+                                                refreshPage()
+                                            }}
                                         /></Table.Cell>
                                     </Table.Row>
                                     <Table.Row>
                                         <Table.Cell>Email</Table.Cell>
                                         <Table.Cell><Input
                                             value={email}
-                                            onChange={(e, {value}) => setEmail(value)}
+                                            onChange={(e, {value}) => {
+                                                setEmail(value)
+                                                refreshPage()
+                                            }}
                                         /></Table.Cell>
                                     </Table.Row>
                                     <Table.Row>
@@ -209,25 +216,46 @@ const UserSpecificPage = () => {
                             </Table>
                         </Grid.Column>
                         <Grid.Column width={8}>
-                            <Table celled>
+                            <Input
+                                icon={'search'}
+                                placeholder={'Search...'}
+                                onChange={e => {
+                                    e.preventDefault()
+                                    setSearch(e.target.value)
+                                }}
+                                value={search}
+                                />
+                            <Table celled compact>
                                 <Table.Header>
                                     <Table.Row>
                                         <Table.HeaderCell colSpan={4}>User Inventory</Table.HeaderCell>
                                     </Table.Row>
                                 </Table.Header>
                                 <Table.Body>
-                                    {itemData.map(item => ( <>
+                                    {itemData
+                                        .filter((v: InventoryItemData) => {
+                                            try {
+                                                return search === '' ||
+                                                    v.id.toString(10) === search ||
+                                                    _.get(v.cost.toString(10).match(search), 'length', 0) > 0 ||
+                                                    _.get(_.toLower(v.description).match(_.toLower(search)), 'length', 0) > 0 ||
+                                                    _.get(_.toLower(v.name).match(_.toLower(search)), 'length', 0) > 0
+                                            } catch (e) {
+                                                return true
+                                            }
+                                        })
+                                        .map(item => ( <>
                                         <Table.Row key={item.id}>
-                                            <Table.Cell collapsing>
+                                            <Table.Cell>
                                                 <Image src={itemImage(item)} avatar/>
                                             </Table.Cell>
-                                            <Table.Cell collapsing>
+                                            <Table.Cell>
                                                 {item.name}
                                             </Table.Cell>
                                             <Table.Cell>
                                                 {item.description}
                                             </Table.Cell>
-                                            <Table.Cell collapsing>
+                                            <Table.Cell>
                                                 <Button
                                                     icon={'plus'}
                                                     positive
@@ -279,7 +307,7 @@ const UserSpecificPage = () => {
                                                         </Dropdown.Menu>
                                                     </Dropdown>
                                                 </Table.Cell>
-                                                <Table.Cell collapsing>
+                                                <Table.Cell>
                                                     <Button
                                                         icon={'qrcode'}
                                                         as={Link}
