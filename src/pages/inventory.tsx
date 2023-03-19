@@ -39,6 +39,10 @@ const Inventory: NextPage = () => {
 
     const [loadingImage, setLoadingImage] = useState(false)
 
+    const [editItemImage, setEditItemImage] = useState(dirs.dummy as string)
+    const [editItemModal, setEditItemModal] = useState(false)
+    const [selectedItem, setSelectedItem] = useState(-1)
+
     const reloadList = () => {
         apiClient.protected.inventory_item.data.$get(apiWithHeaders({})).then(res => {
             setInventoryItems(res)
@@ -76,7 +80,11 @@ const Inventory: NextPage = () => {
                                     <Table.Row
                                         key={v.id}
                                     >
-                                        <Table.Cell collapsing><img src={`${dirs.baseURL}${v.imageURL === '' ? dirs.dummy : dirs.itemImages + v.imageURL}`} width={50} height={50}/></Table.Cell>
+                                        <Table.Cell collapsing><img style={{cursor: 'pointer'}} onClick={() => {
+                                            setSelectedItem(v.id)
+                                            setEditItemImage(_.isEmpty(v.imageURL) ? dirs.dummy : v.imageURL)
+                                            setEditItemModal(true)
+                                        }} src={`${dirs.baseURL}${v.imageURL === '' ? dirs.dummy : dirs.itemImages + v.imageURL}`} width={50} height={50}/></Table.Cell>
                                         <Table.Cell collapsing>{v.id}</Table.Cell>
                                         <Table.Cell><TableFieldEditor value={v.name} setValue={w => {
                                             apiClient.protected.inventory_item.data.$patch(apiWithHeaders({body: {id: v.id, name: w}})).then(res => {
@@ -111,6 +119,24 @@ const Inventory: NextPage = () => {
 
     return (<>
         <Container>
+            <Modal
+                onClose={() => setEditItemModal(false)}
+                onOpen={() => setEditItemModal(true)}
+                open={editItemModal}
+                >
+                <Modal.Header>Edit Item Image</Modal.Header>
+                <Modal.Content>
+                    <img src={`${dirs.baseURL}${editItemImage}`} width={64} height={64}/>
+                    <Input id={'edit-file-input'} type={'file'} onChange={e => {
+                        e.preventDefault()
+                        const el = document.getElementById('edit-file-input') as HTMLInputElement
+                        apiClient.protected.inventory_item.data.image.$post(apiWithHeaders({query: {id: selectedItem}, body: {icon: (el.files as FileList)[0]}})).then(res => {
+                            setEditItemModal(false)
+                            reloadList()
+                        })
+                    }} />
+                </Modal.Content>
+            </Modal>
             <Modal
                 onClose={()=>setAddItemModalShown(false)}
                 onOpen={()=>setAddItemModalShown(true)}

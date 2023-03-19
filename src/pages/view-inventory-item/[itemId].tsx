@@ -2,7 +2,7 @@ import {useRouter} from "next/router";
 import {CSSProperties, useContext, useEffect, useState} from "react";
 import {DirContext} from "~/pages/_app";
 import _ from "lodash";
-import {Button, Container, Grid, Header, Image, List, Radio, Segment} from "semantic-ui-react";
+import {Button, Container, Grid, Header, Image, Input, List, Radio, Segment} from "semantic-ui-react";
 import {InventoryItem, InventoryItemData, User, Warehouse} from "$prisma/client";
 import {apiClient} from "~/utils/apiClient";
 import {apiWithHeaders} from "~/utils/apiConfig";
@@ -21,6 +21,7 @@ const ViewInventoryItemPage = () => {
     const [users, setUsers] = useState<Except<User, 'password'>[]>([])
     const [moveTo, setMoveTo] = useState<'warehouse' | 'user'>('warehouse')
     const [moveToId, setMoveToId] = useState<number>(-1)
+    const [search, setSearch] = useState("")
 
     console.log(dirs.baseURL)
 
@@ -103,10 +104,30 @@ const ViewInventoryItemPage = () => {
                                                 />
                                             </Grid.Column>
                                         </Grid.Row>
+
+                                        <Grid.Row>
+                                            <Grid.Column>
+                                                <Input
+                                                    icon={'search'}
+                                                    placeholder={'Search...'}
+                                                    onChange={e => {
+                                                        e.preventDefault()
+                                                        setSearch(e.target.value)
+                                                    }}
+                                                    value={search}
+                                                    />
+                                            </Grid.Column>
+                                        </Grid.Row>
                                         <Grid.Row>
                                             <Grid.Column width={16}>
                                                 <List selection verticalAlign={'middle'}>
-                                                    {moveTo === 'warehouse' ? warehouses.map(warehouse => (
+                                                    {moveTo === 'warehouse' ? warehouses
+                                                            .filter(v =>
+                                                                v.id.toString(10) === search ||
+                                                                _.get(_.toLower(v.name).match(_.toLower(search)), 'length', 0) > 0 ||
+                                                                _.get(_.toLower(v.address).match(_.toLower(search)), 'length', 0) > 0
+                                                            )
+                                                        .map(warehouse => (
                                                         <List.Item
                                                             active={moveToId === warehouse.id}
                                                             disabled={!_.isUndefined(currWarehouse) && warehouse.id === currWarehouse.id && moveTo === 'warehouse'}
@@ -114,7 +135,13 @@ const ViewInventoryItemPage = () => {
                                                         >
                                                             <List.Header as={'a'}>{warehouse.name}</List.Header>
                                                         </List.Item>
-                                                    )) : users.map(user => (
+                                                    )) : users
+                                                            .filter(v =>
+                                                                v.id.toString(10) === search ||
+                                                                _.get(_.toLower(v.username).match(_.toLower(search)), 'length', 0) > 0 ||
+                                                                _.get(_.toLower(v.email).match(_.toLower(search)), 'length', 0) > 0
+                                                            )
+                                                        .map(user => (
                                                         <List.Item
                                                             active={moveToId === user.id}
                                                             disabled={!_.isUndefined(currUser) && user.id === currUser.id && moveTo === 'user'}
