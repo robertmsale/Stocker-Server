@@ -1,0 +1,9 @@
+stocker.ddns.net {
+    encode gzip
+    handle_path /api/* {
+        reverse_proxy /api/* localhost:33434
+    }
+    handle_path /* {
+        reverse_proxy localhost:8080
+    }
+}

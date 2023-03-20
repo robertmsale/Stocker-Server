@@ -9,7 +9,6 @@ import {styles} from "./styles";
 import {Except} from "type-fest";
 
 import {InventoryItem, InventoryItemData, User} from './types/prisma/client'
-import {apiClient} from "./httpclient";
 import {Dirs} from './types'
 import ItemPage from "./pages/item";
 import LoginPage from "./pages/login";
@@ -44,9 +43,6 @@ export default function App() {
     const [itemData, setItemData] = useState<InventoryItemData>({} as InventoryItemData)
 
     useEffect(() => {
-        apiClient.dirs.$get().then(res => {
-
-        })
     }, [])
 
     let CurrentPage = () => {

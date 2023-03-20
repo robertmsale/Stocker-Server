@@ -258,3 +258,4 @@ const MyApp = ({Component, pageProps}: AppProps) => {
 }
 
 export default dynamic(() => Promise.resolve(MyApp), {ssr: false})
+// export default MyApp

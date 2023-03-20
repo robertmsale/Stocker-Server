@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "npm run migrate:dev && run-p dev:*",
     "dev:copy-types": "cp -R server/types src/utils",
-    "dev:client": "next dev -p 80",
+    "dev:client": "next dev -p 8080",
     "dev:server": "npm run dev --prefix server",
     "dev:aspida": "aspida --watch",
     "dev:pathpida": "pathpida --enableStatic --watch",
@@ -30,7 +30,7 @@
     "migrate:reset": "npm run migrate:reset --prefix server",
     "seed": "npm run seed --prefix server",
     "start": "run-p start:*",
-    "start:client": "next start",
+    "start:client": "next start -p 8080",
     "start:server": "npm start --prefix server",
     "pretest": "npm run generate",
     "test": "jest",

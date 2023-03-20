@@ -20,7 +20,7 @@ import type { Methods as Methods16 } from './protected/user/img'
 import type { Methods as Methods17 } from './try-login'
 
 const api = <T>({ baseURL, fetch }: AspidaClient<T>) => {
-  const prefix = (baseURL === undefined ? 'http://dev.stockerpro.com:33434/api' : baseURL).replace(/\/$/, '')
+  const prefix = (baseURL === undefined ? 'https://stocker.ddns.net/api/' : baseURL).replace(/\/$/, '')
   const PATH0 = '/article'
   const PATH1 = '/dirs'
   const PATH2 = '/login'
