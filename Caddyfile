@@ -1,7 +1,16 @@
 stocker.ddns.net {
     encode gzip
     handle_path /api/* {
-        reverse_proxy /api/* localhost:33434
+        rewrite * /api{path}
+        reverse_proxy http://localhost:33434
+    }
+    handle_path /uploads/* {
+        root * /Users/robertsale/code/Personal/Stocker/uploads
+        file_server
+    }
+    handle_path /static/* {
+        root * /Users/robertsale/code/Personal/Stocker/Stocker-Server/server/static
+        file_server
     }
     handle_path /* {
         reverse_proxy localhost:8080

@@ -72,12 +72,12 @@ const MyApp = ({Component, pageProps}: AppProps) => {
             text: 'Dashboard'
         },
         {
-            href: '/inventory',
-            text: 'Inventory'
+            href: '/scan',
+            text: 'Scan Item'
         },
         {
-            href: '/automations',
-            text: 'Automations'
+            href: '/inventory',
+            text: 'Inventory'
         },
         {
             href: '/users',
@@ -90,10 +90,6 @@ const MyApp = ({Component, pageProps}: AppProps) => {
         {
             href: '/warehouses',
             text: 'Warehouses'
-        },
-        {
-            href: '/reports',
-            text: 'Reports'
         },
     ]
 
