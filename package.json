@@ -43,6 +43,7 @@
     "@aspida/swr": "^1.11.0",
     "@fastify/cookie": "^8.3.0",
     "@fastify/websocket": "^7.1.2",
+    "@nextui-org/react": "^1.0.0-beta.12",
     "@prisma/client": "^4.6.1",
     "@types/bcrypt": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.1",

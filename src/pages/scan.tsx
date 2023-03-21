@@ -14,9 +14,8 @@ const ScanPage = () => {
         }
         let scn = new Html5QrcodeScanner('qrscan', config, false)
         scn.render((res) => {
-            router.push(res)
+            window.location.href = res
         }, (err) => {
-            alert("Not a valid code")
         })
     })
 
