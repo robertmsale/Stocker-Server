@@ -23,6 +23,9 @@ export const pagesPath = {
   "reports": {
     $url: (url?: { hash?: string }) => ({ pathname: '/reports' as const, hash: url?.hash })
   },
+  "scan": {
+    $url: (url?: { hash?: string }) => ({ pathname: '/scan' as const, hash: url?.hash })
+  },
   "user_locations": {
     $url: (url?: { hash?: string }) => ({ pathname: '/user-locations' as const, hash: url?.hash })
   },

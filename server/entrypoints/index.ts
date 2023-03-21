@@ -6,5 +6,6 @@ init()
   .then(() => {
     // PM2 graceful start
     // See also https://pm2.keymetrics.io/docs/usage/signals-clean-restart/
+      console.log(`Server listening on port ${API_SERVER_PORT}`)
     process.send?.('ready')
   })
