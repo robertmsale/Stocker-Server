@@ -13,6 +13,6 @@ stocker.ddns.net {
         file_server
     }
     handle_path /* {
-        reverse_proxy localhost:8080
+        reverse_proxy http://localhost:8080
     }
 }

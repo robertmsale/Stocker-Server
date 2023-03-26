@@ -1,0 +1,13 @@
+body {
+  background-color: black;
+  display: flex;
+}
+
+#root {
+  background-color: black;
+  display: block;
+  justify-content: center;
+  flex-direction: column;
+  width: 100vw;
+  height: 100vh;
+}

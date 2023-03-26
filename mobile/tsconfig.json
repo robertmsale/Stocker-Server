@@ -1,9 +1,0 @@
-{
-  "extends": "expo/tsconfig.base",
-  "paths": {
-      "$prisma/*": ["./server/node_modules/.prisma/*"]
-    },
-  "compilerOptions": {
-    "strict": true
-  }
-}
